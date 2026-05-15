@@ -18,7 +18,11 @@ logging.basicConfig(
 BASE_URL = os.getenv("BASE_URL") or "http://localhost:5000"
 
 # The secret key for API authentication
-SECRET_KEY = os.getenv("SECRET_KEY") or "worldpeace2024"
+#SECRET_KEY = os.getenv("SECRET_KEY") or "worldpeace2024"
+_secret_key = os.getenv("SECRET_KEY")
+if not _secret_key:
+    raise ValueError("SECRET_KEY environment variable must be set...")
+SECRET_KEY = _secret_key
 
 # The headers for API requests
 HEADERS = {"Authorization": f"Bearer {SECRET_KEY}"}
