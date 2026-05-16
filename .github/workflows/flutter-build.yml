@@ -602,7 +602,7 @@ jobs:
 
       - name: Import notarize key
         if: env.MACOS_P12_BASE64 != null
-        uses: timheuer/base64-to-file@v1.2
+        uses: timheuer/base64-to-file@v2.0
         with:
           # https://gregoryszorc.com/docs/apple-codesign/stable/apple_codesign_rcodesign.html#notarizing-and-stapling
           fileName: rustdesk.json
