@@ -1368,7 +1368,15 @@ impl Config {
         }
 
         log::warn!("Permanent password storage is not hashed; verifying as plaintext");
-        storage == input
+        // Use constant-time comparison to prevent timing attacks
+        if storage.len() != input.len() {
+            return false;
+        }
+        let mut result: u8 = 0;
+        for (a, b) in storage.bytes().zip(input.bytes()) {
+            result |= a ^ b;
+        }
+        result == 0
     }
 
     pub fn has_permanent_password() -> bool {
