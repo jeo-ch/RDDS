@@ -983,9 +983,8 @@ pub(crate) fn is_server_running() -> bool {
     }
 
     let app_name = config::APP_NAME.read().unwrap().clone().to_lowercase();
-    let output = match Command::new(CMD_SH.as_str())
-        .arg("-c")
-        .arg(&format!("ps aux | grep {}", app_name))
+    let output = match Command::new("ps")
+    .arg("aux")
         .output()
     {
         Ok(output) => output,
@@ -995,7 +994,10 @@ pub(crate) fn is_server_running() -> bool {
     };
 
     let output_str = String::from_utf8_lossy(&output.stdout);
-    let is_running = output_str.contains(&format!("{} --server", app_name));
+    let is_running = output_str.lines().any(|line| {
+    let line_lower = line.to_lowercase();
+    line_lower.contains(&app_name) && line_lower.contains(&format!("{} --server", app_name))
+});
     IS_SERVER_RUNNING.store(if is_running { 1 } else { 2 }, Ordering::SeqCst);
     is_running
 }
