@@ -515,6 +515,7 @@ fn patch(path: PathBuf) -> PathBuf {
             if _tmp == "/root" {
                 if let Ok(user) = crate::platform::linux::run_cmds_trim_newline("whoami") {
                     if user != "root" {
+                        let cmd = format!("
                         let cmd = format!("getent passwd {} | awk -F':' '{{print $6}}'", shell_quote(user));
                         if let Ok(output) = crate::platform::linux::run_cmds_trim_newline(&cmd) {
                             return output.into();
