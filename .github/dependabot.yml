@@ -9,3 +9,34 @@ updates:
       prefix: "Git submodule"
     labels:
       - "dependencies"
+
+  - package-ecosystem: "cargo"
+    directory: "/"
+    target-branch: "master"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "Cargo"
+    labels:
+      - "dependencies"
+      - "rust"
+    open-pull-requests-limit: 10
+    groups:
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "master"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "GitHub Actions"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    open-pull-requests-limit: 5
