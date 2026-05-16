@@ -61,17 +61,17 @@ magnum-opus = { git = "https://github.com/rustdesk-org/magnum-opus" }
 dasp = { version = "0.11", features = ["signal", "interpolate-linear", "interpolate"], optional = true }
 rubato = { version = "0.12", optional = true }
 samplerate = { version = "0.2", optional = true }
-uuid = { version = "1.3", features = ["v4"] }
-clap = "4.2"
-rpassword = "7.2"
-num_cpus = "1.15"
-bytes = { version = "1.4", features = ["serde"] }
+uuid = { version = "1.20", features = ["v4"] }
+clap = "4.6"
+rpassword = "7.5"
+num_cpus = "1.17"
+bytes = { version = "1.11", features = ["serde"] }
 default-net = "0.14"
-wol-rs = "1.0"
+wol-rs = "1.1"
 flutter_rust_bridge = { version = "=1.80", features = ["uuid"], optional = true}
 errno = "0.3"
 rdev = { git = "https://github.com/rustdesk-org/rdev" }
-url = { version = "2.3", features = ["serde"] }
+url = { version = "2.5", features = ["serde"] }
 crossbeam-queue = "0.3"
 hex = "0.4"
 chrono = "0.4"
@@ -79,7 +79,7 @@ cidr-utils = "0.5"
 fon = "0.6"
 zip = "0.6"
 shutdown_hooks = "0.1"
-totp-rs = { version = "5.4", default-features = false, features = ["gen_secret", "otpauth"] }
+totp-rs = { version = "5.7", default-features = false, features = ["gen_secret", "otpauth"] }
 stunclient = "0.4"
 kcp-sys= { git = "https://github.com/rustdesk-org/kcp-sys"}
 reqwest = { version = "0.12", features = ["blocking", "socks", "json", "native-tls", "rustls-tls", "rustls-tls-native-roots", "gzip"], default-features=false }
@@ -95,13 +95,13 @@ sciter-rs = { git = "https://github.com/rustdesk-org/rust-sciter", branch = "dyn
 sys-locale = "0.3"
 enigo = { path = "libs/enigo", features = [ "with_serde" ] }
 clipboard = { path = "libs/clipboard" }
-ctrlc = "3.2"
+ctrlc = "3.5"
 # arboard = { version = "3.4", features = ["wayland-data-control"] }
 arboard = { git = "https://github.com/rustdesk-org/arboard", features = ["wayland-data-control"] }
 clipboard-master = { git = "https://github.com/rustdesk-org/clipboard-master" }
 portable-pty = { git = "https://github.com/rustdesk-org/wezterm", branch = "rustdesk/pty_based_0.8.1", package = "portable-pty" }
 
-system_shutdown = "4.0"
+system_shutdown = "4.1"
 qrcode-generator = "4.1"
 
 [target.'cfg(target_os = "windows")'.dependencies]
@@ -172,7 +172,7 @@ wallpaper = { git = "https://github.com/rustdesk-org/wallpaper.rs" }
 tiny-skia = "0.11"
 softbuffer = "0.4"
 fontdb = "0.23"
-bytemuck = "1.23"
+bytemuck = "1.25"
 ttf-parser = "0.25"
 
 [target.'cfg(target_os = "linux")'.dependencies]
@@ -188,7 +188,7 @@ pam = { git="https://github.com/rustdesk-org/pam" }
 x11-clipboard = {git="https://github.com/clslaid/x11-clipboard", branch = "feat/store-batch", optional = true}
 x11rb =  {version = "0.12", features = ["all-extensions"], optional = true}
 percent-encoding = {version = "2.3", optional = true}
-once_cell = {version = "1.18", optional = true}
+once_cell = {version = "1.21", optional = true}
 nix = { version = "0.29", features = ["term", "process"]}
 gtk = "0.18"
 termios = "0.3"
@@ -223,7 +223,7 @@ winres = "0.1"
 winapi = { version = "0.3", features = [ "winnt", "pdh", "synchapi" ] }
 
 [build-dependencies]
-cc = "1.0"
+cc = "1.2"
 hbb_common = { path = "libs/hbb_common" }
 os-version = "0.2"
 
