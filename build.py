@@ -46,10 +46,12 @@ def system2(cmd):
 
 
 def get_version():
+    import re
     with open("Cargo.toml", encoding="utf-8") as fh:
-        for line in fh:
-            if line.startswith("version"):
-                return line.replace("version", "").replace("=", "").replace('"', '').strip()
+        content = fh.read()
+    match = re.search(r'^version\s*=\s*"([^"]+)"', content, re.MULTILINE)
+    if match:
+        return match.group(1)
     return ''
 
 
