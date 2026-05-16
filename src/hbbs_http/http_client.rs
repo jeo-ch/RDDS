@@ -15,6 +15,15 @@ macro_rules! configure_http_client {
         // https://github.com/rustdesk/rustdesk/issues/11569
         // https://docs.rs/reqwest/latest/reqwest/struct.ClientBuilder.html#method.no_proxy
         let mut builder = $builder.no_proxy();
+                // SECURITY WARNING: danger_accept_invalid_certs bypasses TLS certificate validation
+        // This should only be used for testing or when connecting to servers with self-signed certs
+        if $danger_accept_invalid_cert {
+            log::warn!(
+                "SECURITY WARNING: TLS certificate validation is disabled. \
+                 This exposes connections to man-in-the-middle attacks. \
+                 Only use this in trusted environments or for testing."
+            );
+        }
 
         match $tls_type {
             TlsType::Plain => {}
