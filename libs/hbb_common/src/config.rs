@@ -1067,7 +1067,7 @@ impl Config {
     fn get_auto_password_with_chars(length: usize, chars: &[char]) -> String {
         let mut rng = rand::thread_rng();
         (0..length)
-            .map(|_| chars[rng.gen::<usize>() % chars.len()])
+            .map(|_| chars[rng.random::<usize>() % chars.len()])
             .collect()
     }
 
@@ -1264,7 +1264,7 @@ impl Config {
         // to-do: how about if one ip register a lot of ids?
         let id = Self::get_id();
         let mut rng = rand::thread_rng();
-        let new_id = rng.gen_range(1_000_000_000..2_000_000_000).to_string();
+        let new_id = rng.random_range(1_000_000_000..2_000_000_000).to_string();
         Config::set_id(&new_id);
         log::info!("id updated from {} to {}", id, new_id);
     }
