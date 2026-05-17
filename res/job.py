@@ -5,8 +5,7 @@ import os
 import time
 import argparse
 import logging
-import shutil
-import zipfile
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -80,6 +79,7 @@ def download_files(task_id, output_dir, fn=None):
         fn = f"task_{task_id}_files.zip"
     if response.status_code == 200:
         # Save the file to the output directory
+        os.makedirs(output_dir, exist_ok=True)
         with open(os.path.join(output_dir, fn), "wb") as f:
             for chunk in response.iter_content(chunk_size=1024):
                 if chunk:
@@ -98,6 +98,7 @@ def download_one_file(task_id, file_id, output_dir):
     # Check if the request was successful
     if response.status_code == 200:
         # Save the file to the output directory
+        os.makedirs(output_dir, exist_ok=True)
         with open(os.path.join(output_dir, file_id), "wb") as f:
             for chunk in response.iter_content(chunk_size=1024):
                 if chunk:
@@ -135,22 +136,28 @@ def delete_task(task_id):
 
 def sign(file_path):
     res = create("sign", file_path)
-    if res.ok:
-        task_id = res.task_id
+    if res.get("id"):
+        task_id = res["id"]
 
         # Poll the status every second
+        n = 0
         while True:
+            if n >= SIGN_TIMEOUT:
+                delete_task(task_id)
+                logging.error(f"Failed to sign {file_path}: timeout")
+                break
+            time.sleep(1)
+            n += 1
             status = get_status(task_id)
-            if status["status"] == "done":
+            if status and status.get("state") == "done":
                 # Download the files
                 download_files(task_id, "output")
 
                 # Delete the task
                 delete_task(task_id)
 
+                logging.info(f"Signed {file_path}")
                 break
-
-            time.sleep(1)
 
 
 def sign_one_file(file_path):
@@ -181,7 +188,7 @@ def get_json(response):
     try:
         return response.json()
     except Exception as e:
-        raise Exception(response.text)
+        raise Exception(f"{e}: {response.text}") from e
 
 
 SIGN_EXTENSIONS = [
