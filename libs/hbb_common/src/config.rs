@@ -1036,7 +1036,7 @@ impl Config {
         {
             return Some(
                 rand::rng()
-                    .gen_range(1_000_000_000..2_000_000_000)
+                    .random_range(1_000_000_000..2_000_000_000)
                     .to_string(),
             );
         }
