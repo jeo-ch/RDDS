@@ -1234,17 +1234,18 @@ impl AudioBuffer {
         }
         self.2[i] += 1;
 
-        #[allow(non_upper_case_globals)]
-        static mut tms: i64 = 0;
+        use std::sync::atomic::{AtomicI64, Ordering};
+        static TMS: AtomicI64 = AtomicI64::new(0);
         let dt = Local::now().timestamp_millis();
-        unsafe {
+        {
+            let tms = TMS.load(Ordering::Relaxed);
             if tms == 0 {
-                tms = dt;
+                TMS.store(dt, Ordering::Relaxed);
                 return;
             } else if dt < tms + 12000 {
                 return;
             }
-            tms = dt;
+            TMS.store(dt, Ordering::Relaxed);
         }
 
         // the safer water mark to drop
