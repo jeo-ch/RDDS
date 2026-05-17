@@ -26,8 +26,8 @@ SECRET_KEY = _secret_key
 # The headers for API requests
 HEADERS = {"Authorization": f"Bearer {SECRET_KEY}"}
 
-SIGN_TIMEOUT = int(os.getenv("SIGN_TIMEOUT") or "30")
-TIMEOUT = float(os.getenv("TIMEOUT") or "900")
+SIGN_TIMEOUT = int(os.getenv("SIGN_TIMEOUT") or 30)
+TIMEOUT = float(os.getenv("TIMEOUT") or 900)
 
 
 def create(task_name, file_path=None):
@@ -164,6 +164,9 @@ def sign_one_file(file_path):
     logging.info(f"Signing {file_path}")
     res = create("sign", file_path)
     logging.info(f"Uploaded {file_path}")
+    if not res.get("id"):
+        logging.error(f"Failed to sign {file_path}: no task id in response")
+        return False
     task_id = res["id"]
     n = 0
     while True:
