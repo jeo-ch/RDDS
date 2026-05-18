@@ -12,6 +12,7 @@ use std::{
 use anyhow::Result;
 use bytes::Bytes;
 use rand::Rng;
+#[cfg(target_os = "linux")]
 use crate::platform::linux::shell_quote;
 use regex::Regex;
 use serde as de;
