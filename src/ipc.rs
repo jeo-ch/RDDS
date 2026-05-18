@@ -1113,7 +1113,7 @@ pub async fn connect(ms_timeout: u64, postfix: &str) -> ResultType<ConnectionTmp
 }
 
 pub(crate) fn generate_one_time_ipc_token() -> ResultType<String> {
-    use hbb_common::rand::{rngs::OsRng, RngCore as _};
+    use hbb_common::rand::{rngs::OsRng, TryRngCore as _};
     use std::fmt::Write as _;
 
     let mut random_bytes = [0u8; IPC_TOKEN_RANDOM_BYTES];
