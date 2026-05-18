@@ -499,7 +499,7 @@ impl DesktopManager {
         envs: &HashMap<&str, String>,
     ) -> ResultType<()> {
         let randstr = (0..16)
-            .map(|_| format!("{:02x}", random::<u8>()))
+            .map(|_| format!("{:02x}", rand::rng().random::<u8>()))
             .collect::<String>();
         let output = Command::new("xauth")
             .uid(uid)
