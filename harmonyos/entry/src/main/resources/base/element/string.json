@@ -1,0 +1,94 @@
+{
+    "string": [
+        {
+            "name": "app_name",
+            "value": "RustDesk"
+        },
+        {
+            "name": "module_desc",
+            "value": "远程桌面控制应用"
+        },
+        {
+            "name": "EntryAbility_desc",
+            "value": "远程桌面控制"
+        },
+        {
+            "name": "EntryAbility_label",
+            "value": "RustDesk"
+        },
+        {
+            "name": "permission_screen_capture_reason",
+            "value": "需要此权限来显示远程桌面画面"
+        },
+        {
+            "name": "permission_input_monitoring_reason",
+            "value": "需要此权限来实现远程设备控制"
+        },
+        {
+            "name": "connect_button",
+            "value": "连接"
+        },
+        {
+            "name": "settings",
+            "value": "设置"
+        },
+        {
+            "name": "your_id",
+            "value": "您的ID"
+        },
+        {
+            "name": "remote_id",
+            "value": "远程ID"
+        },
+        {
+            "name": "password",
+            "value": "密码"
+        },
+        {
+            "name": "disconnect",
+            "value": "断开连接"
+        },
+        {
+            "name": "connected_to",
+            "value": "已连接到"
+        },
+        {
+            "name": "server_address",
+            "value": "服务器地址"
+        },
+        {
+            "name": "server_port",
+            "value": "端口"
+        },
+        {
+            "name": "direct_connection",
+            "value": "直连模式"
+        },
+        {
+            "name": "save",
+            "value": "保存"
+        },
+        {
+            "name": "back",
+            "value": "返回"
+        }
+    ],
+    "color": [
+        {
+            "name": "start_window_background",
+            "value": "#FFFFFF"
+        },
+        {
+            "name": "primary_color",
+            "value": "#007DFF"
+        },
+        {
+            "name": "background_color",
+            "value": "#F5F5F5"
+        },
+        {
+            "name": "text_color",
+            "value": "#333333"
+        }
+    ]
+}

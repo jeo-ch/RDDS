@@ -4,6 +4,8 @@ pub use linux::*;
 pub use macos::*;
 #[cfg(windows)]
 pub use windows::*;
+#[cfg(target_os = "harmonyos")]
+pub use harmony::*;
 
 #[cfg(windows)]
 pub mod windows;
@@ -25,6 +27,9 @@ pub mod linux_desktop_manager;
 
 #[cfg(target_os = "linux")]
 pub mod gtk_sudo;
+
+#[cfg(target_os = "harmonyos")]
+pub mod harmony;
 
 #[cfg(all(
     not(all(target_os = "windows", not(target_pointer_width = "64"))),
