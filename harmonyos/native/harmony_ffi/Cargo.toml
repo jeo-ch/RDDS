@@ -1,0 +1,25 @@
+[package]
+name = "rustdesk_core_harmony"
+version = "0.1.0"
+authors = ["rustdesk <info@rustdesk.com>"]
+edition = "2021"
+
+[lib]
+name = "rustdesk_core"
+crate-type = ["cdylib"]
+
+[dependencies]
+napi = { version = "2.0", features = ["async"] }
+napi-derive = "2.0"
+hbb_common = { path = "../../libs/hbb_common" }
+tokio = { version = "1.0", features = ["full"] }
+lazy_static = "1.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[build-dependencies]
+napi-build = "2.0"
+
+[[bin]]
+name = "harmony_test"
+path = "src/bin/test.rs"

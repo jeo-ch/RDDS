@@ -1,0 +1,72 @@
+{
+  "apiType": "stageMode",
+  "buildOption": {
+    "externalNativeOptions": {
+      "path": "src/main/cpp/CMakeLists.txt",
+      "arguments": "",
+      "cppFlags": "-Werror -Wall -Wextra",
+      "abiFilters": [
+        "armeabi-v7a",
+        "arm64-v8a"
+      ]
+    },
+    "arkOptions": {
+      "obfuscation": {
+        "ruleOptions": {
+          "enable": true,
+          "obfuscationType": "abbreviation",
+          "obfuscationLevel": "advanced"
+        }
+      }
+    },
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "",
+          "storePassword": "",
+          "keyAlias": "",
+          "keyPassword": "",
+          "profile": "",
+          "signAlg": "SHA256withECDSA"
+        }
+      }
+    ]
+  },
+  "buildOptionSet": [
+    {
+      "name": "release",
+      "arkOptions": {
+        "obfuscation": {
+          "ruleOptions": {
+            "enable": true,
+            "files": [
+              "./build-profile.json5"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "products": [
+    {
+      "name": "default",
+      "signingConfig": "default",
+      "compatibleSdkVersion": "5.0.0(12)",
+      "runtimeOS": "HarmonyOS",
+      "buildOption": {
+        "cleanAction": "delete",
+        "debug": {
+          "packOptions": {
+            "ignore": [
+              ".git",
+              ".vscode",
+              "node_modules"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
