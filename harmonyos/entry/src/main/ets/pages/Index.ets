@@ -1,163 +1,194 @@
-import router from '@ohos.router'
-import promptAction from '@ohos.promptAction'
-import { rustDeskCore } from '../utils/RustDeskCore'
-import { logger } from '@ohos.hilog'
+import router from '@ohos.router';
+import promptAction from '@ohos.promptAction';
+import { rustDeskCore } from '../utils/RustDeskCore';
+import { logger } from '@ohos.hilog';
 
-const TAG: string = '[RustDesk.Index]'
+const TAG: string = '[RustDesk.Index]';
 
 @Entry
 @Component
 struct Index {
-  @State localId: string = ''
-  @State remoteId: string = ''
-  @State password: string = ''
-  @State isConnecting: boolean = false
-  @State connectionStatus: string = ''
+  @State localId: string = 'LOADING...';
+  @State remoteId: string = '';
+  @State password: string = '';
+  @State isConnecting: boolean = false;
+  @State connectionStatus: string = '';
 
   async aboutToAppear() {
-    logger.info(TAG, 'Index page appearing')
+    logger.info(TAG, 'Index page appearing');
     
-    // 初始化核心
-    const appFilesDir = '/data/storage/el2/base/haps/entry/files'
-    const initSuccess = await rustDeskCore.initialize(appFilesDir)
-    
-    if (initSuccess) {
-      await this.loadLocalId()
+    try {
+      // 初始化核心
+      const appFilesPath = this.context.filesDir;
+      const initSuccess = await rustDeskCore.initialize(appFilesPath);
+      
+      if (initSuccess) {
+        // 加载本地ID
+        this.localId = await rustDeskCore.getLocalId();
+        logger.info(TAG, 'Local ID loaded: ' + this.localId);
+      } else {
+        this.localId = 'INIT_FAILED';
+        promptAction.showToast({
+          message: '初始化失败',
+          duration: 2000
+        });
+      }
+    } catch (error) {
+      logger.error(TAG, 'Failed to initialize: ' + JSON.stringify(error));
+      this.localId = 'ERROR';
     }
   }
 
   build() {
     Column() {
+      // 标题
       Text('RustDesk')
-        .fontSize(30)
+        .fontSize(32)
         .fontWeight(FontWeight.Bold)
         .margin({ top: 40, bottom: 20 })
 
-      // 本地 ID 显示
+      // 本地ID展示区
       Column() {
-        Text('您的 ID')
+        Text('您的ID')
           .fontSize(16)
           .fontColor('#666666')
           .margin({ bottom: 8 })
-
+          .width('100%')
+        
         Text(this.localId)
-          .fontSize(24)
+          .fontSize(28)
           .fontWeight(FontWeight.Medium)
-          .margin({ bottom: 4 })
+          .margin({ bottom: 16 })
+          .copyOption({ copyOption: CopyOptions.Inside })
+        
+        Row() {
+          Button('复制ID')
+            .fontSize(14)
+            .onClick(() => {
+              // 复制到剪贴板
+              promptAction.showToast({
+                message: 'ID已复制',
+                duration: 1500
+              });
+            })
+        }
       }
       .width('90%')
       .padding(20)
-      .backgroundColor('#F5F5F5')
+      .backgroundColor('#FFFFFF')
       .borderRadius(12)
       .margin({ bottom: 20 })
 
-      // 远程 ID 输入
+      // 连接区
       Column() {
-        Text('远程 ID')
+        Text('远程ID')
           .fontSize(16)
           .fontColor('#666666')
           .width('100%')
           .margin({ bottom: 8 })
-
-        TextInput({ placeholder: '输入远程设备 ID' })
+        
+        TextInput({ placeholder: '输入远程设备ID', text: this.remoteId })
           .onChange((value: string) => {
-            this.remoteId = value
+            this.remoteId = value;
           })
           .margin({ bottom: 12 })
-
-        Text('密码 (可选)')
+        
+        Text('密码(可选)')
           .fontSize(16)
           .fontColor('#666666')
           .width('100%')
           .margin({ bottom: 8 })
-
-        TextInput({ placeholder: '输入密码' })
+        
+        TextInput({ placeholder: '输入密码', text: this.password })
           .type(InputType.Password)
           .onChange((value: string) => {
-            this.password = value
+            this.password = value;
           })
-
+          .margin({ bottom: 20 })
+        
         Button(this.isConnecting ? '连接中...' : '连接')
           .width('100%')
           .height(48)
-          .margin({ top: 20 })
           .enabled(!this.isConnecting)
+          .backgroundColor('#007DFF')
           .onClick(() => {
-            this.connectToPeer()
+            this.connectToPeer();
           })
-
+        
         if (this.connectionStatus) {
           Text(this.connectionStatus)
             .fontSize(14)
-            .fontColor(this.connectionStatus.includes('失败') ? '#FF0000' : '#00AA00')
+            .fontColor(this.connectionStatus.includes('失败') || this.connectionStatus.includes('错误') ? '#FF4444' : '#00AA00')
             .margin({ top: 12 })
         }
       }
       .width('90%')
       .padding(20)
       .backgroundColor('#FFFFFF')
-      .border({ width: 1, color: '#E0E0E0' })
       .borderRadius(12)
 
       Blank()
 
-      // 设置按钮
+      // 底部控制栏
       Row() {
         Button('设置')
           .fontSize(14)
           .backgroundColor('transparent')
           .fontColor('#666666')
           .onClick(() => {
-            router.pushUrl({ url: 'pages/Settings' })
+            router.pushUrl({ url: 'pages/Settings' });
           })
+        
+        Blank()
+        
+        Text('版本: 1.0.0-harmony')
+          .fontSize(12)
+          .fontColor('#999999')
       }
+      .width('90%')
+      .height(50)
       .margin({ bottom: 20 })
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#FAFAFA')
-  }
-
-  async loadLocalId() {
-    try {
-      this.localId = await rustDeskCore.getLocalId()
-    } catch (e) {
-      this.localId = '加载失败'
-      logger.error(TAG, `Failed to load local ID: ${JSON.stringify(e)}`)
-    }
+    .backgroundColor('#F5F5F5')
   }
 
   async connectToPeer() {
-    if (!this.remoteId) {
+    if (!this.remoteId.trim()) {
       promptAction.showToast({
-        message: '请输入远程 ID',
+        message: '请输入远程ID',
         duration: 2000
-      })
-      return
+      });
+      return;
     }
 
-    this.isConnecting = true
-    this.connectionStatus = '正在连接...'
+    this.isConnecting = true;
+    this.connectionStatus = '正在连接到 ' + this.remoteId + '...';
 
     try {
-      const success = await rustDeskCore.connectToPeer(this.remoteId, this.password)
+      const success = await rustDeskCore.connectToPeer(this.remoteId, this.password);
       
       if (success) {
-        this.connectionStatus = '连接成功!'
+        this.connectionStatus = '连接成功!';
         
-        // 跳转到远程桌面页面
-        router.pushUrl({
-          url: 'pages/RemoteDesktop',
-          params: { peerId: this.remoteId }
-        })
+        // 延迟跳转，让用户看到成功提示
+        setTimeout(() => {
+          router.pushUrl({
+            url: 'pages/RemoteDesktop',
+            params: { peerId: this.remoteId }
+          });
+          this.connectionStatus = '';
+          this.isConnecting = false;
+        }, 1000);
       } else {
-        this.connectionStatus = '连接失败，请检查网络'
+        this.connectionStatus = '连接失败，请检查网络';
+        this.isConnecting = false;
       }
-    } catch (e) {
-      this.connectionStatus = '连接出错: ' + JSON.stringify(e)
-      logger.error(TAG, `Connection error: ${JSON.stringify(e)}`)
-    } finally {
-      this.isConnecting = false
+    } catch (error) {
+      this.connectionStatus = '连接错误: ' + JSON.stringify(error);
+      logger.error(TAG, 'Connection error: ' + JSON.stringify(error));
+      this.isConnecting = false;
     }
   }
 }

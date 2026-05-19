@@ -1,0 +1,12 @@
+{
+  "name": "rustdesk-harmony",
+  "version": "1.0.0",
+  "description": "RustDesk - Remote Desktop for HarmonyOS",
+  "main": "",
+  "author": "",
+  "license": "",
+  "dependencies": {},
+  "devDependencies": {
+    "@ohos/hypium": "1.0.16"
+  }
+}
