@@ -1,30 +1,49 @@
-cmak_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.16)
 project(RustDeskHarmony)
 
 # 设置输出目录
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-# 设置Rust编译路径
-set(RUST_PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../harmonyos/native/harmony_ffi)
+# 设置 C++ 标准
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 添加Rust静态库
-add_library(rustdesk_core STATIC IMPORTED)
+# 编译选项
+add_compile_options(-Wall -Wextra -Werror -O2)
 
-# 设置Rust库的路径 - 实际需要根据编译结果调整
-if(${CMAKE_ANDROID_ARCH_ABI} STREQUAL "arm64-v8a")
-    set_target_properties(rustdesk_core PROPERTIES IMPORTED_LOCATION
-        ${RUST_PROJECT_DIR}/target/aarch64-linux-harmony/release/librustdesk_core.a)
-elseif(${CMAKE_ANDROID_ARCH_ABI} STREQUAL "armeabi-v7a")
-    set_target_properties(rustdesk_core PROPERTIES IMPORTED_LOCATION
-        ${RUST_PROJECT_DIR}/target/armv7-linux-harmony/release/librustdesk_core.a)
+# 添加 NAPI 头文件
+if(EXISTS ${CMAKE_SYSROOT}/usr/include/napi)
+  include_directories(${CMAKE_SYSROOT}/usr/include/napi)
 endif()
 
-# 创建NAPI绑定
-add_library(rustdesk_napi SHARED napi_bindings.cpp)
+# 查找 NAPI 库
+find_library(NAPI_LIBRARY napi)
+if(NOT NAPI_LIBRARY)
+  message(FATAL_ERROR "NAPI library not found")
+endif()
 
-# 链接Rust库和鸿蒙NAPI库
-target_link_libraries(rustdesk_napi PRIVATE rustdesk_core)
+# 创建 NAPI 绑定库
+add_library(rustdesk_napi SHARED
+  napi_bindings.cpp
+  napi_module.cpp
+)
 
-# 包含NAPI头文件
-target_include_directories(rustdesk_napi PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../../harmonyos/native/harmony_ffi)
+# 链接 NAPI 库
+target_link_libraries(rustdesk_napi PRIVATE
+  ${NAPI_LIBRARY}
+  hilog_ndk.z
+)
+
+# 设置库属性
+set_target_properties(rustdesk_napi PROPERTIES
+  LINK_FLAGS "-Wl,--hash-style=both"
+)
+
+# Rust 核心库链接（当可用时）
+# if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../../native/harmony_ffi/target/aarch64-unknown-linux-ohos/release/librustdesk_core.a)
+#   add_library(rustdesk_core STATIC IMPORTED)
+#   set_target_properties(rustdesk_core PROPERTIES
+#     IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../../native/harmony_ffi/target/aarch64-unknown-linux-ohos/release/librustdesk_core.a
+#   )
+#   target_link_libraries(rustdesk_napi PRIVATE rustdesk_core)
+# endif()

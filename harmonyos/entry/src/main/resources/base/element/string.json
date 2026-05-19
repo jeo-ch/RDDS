@@ -1,94 +1,130 @@
 {
-    "string": [
-        {
-            "name": "app_name",
-            "value": "RustDesk"
-        },
-        {
-            "name": "module_desc",
-            "value": "远程桌面控制应用"
-        },
-        {
-            "name": "EntryAbility_desc",
-            "value": "远程桌面控制"
-        },
-        {
-            "name": "EntryAbility_label",
-            "value": "RustDesk"
-        },
-        {
-            "name": "permission_screen_capture_reason",
-            "value": "需要此权限来显示远程桌面画面"
-        },
-        {
-            "name": "permission_input_monitoring_reason",
-            "value": "需要此权限来实现远程设备控制"
-        },
-        {
-            "name": "connect_button",
-            "value": "连接"
-        },
-        {
-            "name": "settings",
-            "value": "设置"
-        },
-        {
-            "name": "your_id",
-            "value": "您的ID"
-        },
-        {
-            "name": "remote_id",
-            "value": "远程ID"
-        },
-        {
-            "name": "password",
-            "value": "密码"
-        },
-        {
-            "name": "disconnect",
-            "value": "断开连接"
-        },
-        {
-            "name": "connected_to",
-            "value": "已连接到"
-        },
-        {
-            "name": "server_address",
-            "value": "服务器地址"
-        },
-        {
-            "name": "server_port",
-            "value": "端口"
-        },
-        {
-            "name": "direct_connection",
-            "value": "直连模式"
-        },
-        {
-            "name": "save",
-            "value": "保存"
-        },
-        {
-            "name": "back",
-            "value": "返回"
-        }
-    ],
-    "color": [
-        {
-            "name": "start_window_background",
-            "value": "#FFFFFF"
-        },
-        {
-            "name": "primary_color",
-            "value": "#007DFF"
-        },
-        {
-            "name": "background_color",
-            "value": "#F5F5F5"
-        },
-        {
-            "name": "text_color",
-            "value": "#333333"
-        }
-    ]
+  "string": [
+    {
+      "name": "app_name",
+      "value": "RustDesk"
+    },
+    {
+      "name": "module_desc",
+      "value": "远程桌面控制应用"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "远程桌面控制"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "RustDesk"
+    },
+    {
+      "name": "permission_internet_reason",
+      "value": "需要网络连接以建立远程桌面会话"
+    },
+    {
+      "name": "permission_network_info_reason",
+      "value": "需要访问网络信息以检测连接状态"
+    },
+    {
+      "name": "permission_screen_capture_reason",
+      "value": "需要屏幕捕获权限以显示远程桌面画面"
+    },
+    {
+      "name": "permission_input_monitoring_reason",
+      "value": "需要输入监控权限以实现远程设备控制"
+    },
+    {
+      "name": "permission_microphone_reason",
+      "value": "需要麦克风权限以支持语音传输（可选）"
+    },
+    {
+      "name": "permission_read_media_reason",
+      "value": "需要读取存储权限以支持文件传输"
+    },
+    {
+      "name": "permission_write_media_reason",
+      "value": "需要写入存储权限以保存传输的文件"
+    },
+    {
+      "name": "permission_running_state_reason",
+      "value": "需要运行状态权限以保持应用在后台运行"
+    },
+    {
+      "name": "permission_background_reason",
+      "value": "需要后台运行权限以保持远程连接不中断"
+    },
+    {
+      "name": "connect_button",
+      "value": "连接"
+    },
+    {
+      "name": "settings",
+      "value": "设置"
+    },
+    {
+      "name": "your_id",
+      "value": "您的 ID"
+    },
+    {
+      "name": "remote_id",
+      "value": "远程 ID"
+    },
+    {
+      "name": "password",
+      "value": "密码"
+    },
+    {
+      "name": "disconnect",
+      "value": "断开连接"
+    },
+    {
+      "name": "connected_to",
+      "value": "已连接到"
+    },
+    {
+      "name": "server_address",
+      "value": "服务器地址"
+    },
+    {
+      "name": "server_port",
+      "value": "端口"
+    },
+    {
+      "name": "direct_connection",
+      "value": "直连模式"
+    },
+    {
+      "name": "save",
+      "value": "保存"
+    },
+    {
+      "name": "back",
+      "value": "返回"
+    }
+  ],
+  "color": [
+    {
+      "name": "start_window_background",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "primary_color",
+      "value": "#007DFF"
+    },
+    {
+      "name": "background_color",
+      "value": "#FAFAFA"
+    },
+    {
+      "name": "text_color",
+      "value": "#333333"
+    },
+    {
+      "name": "danger_color",
+      "value": "#FF4444"
+    },
+    {
+      "name": "success_color",
+      "value": "#00AA00"
+    }
+  ]
 }

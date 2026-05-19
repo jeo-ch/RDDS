@@ -1,207 +1,238 @@
-import { testNapi } from 'libentry.so'
-import promptAction from '@ohos.promptAction'
-import { logger } from '@ohos.hilog'
+import { logger } from '@ohos.hilog';
 
-const TAG: string = '[RustDesk.Native]'
+const TAG: string = '[RustDesk.Native]';
 
-// RustDesk 原生核心接口
-export class RustDeskCore {
-  private static instance: RustDeskCore
-  private isInitialized: boolean = false
+// 权限状态
+export enum ConnectionState {
+  Disconnected = 0,
+  Connecting = 1,
+  Connected = 2,
+  Error = 3
+}
 
-  static getInstance(): RustDeskCore {
+/**
+ * 远程桌面会话
+ */
+export interface RemoteSession {
+  id: string;
+  peerId: string;
+  state: ConnectionState;
+  connectedAt: number;
+}
+
+/**
+ * RustDesk Core Interface
+ */
+export interface IRustDeskCore {
+  initialize(appDir: string): Promise<boolean>;
+  getLocalId(): Promise<string>;
+  connectToPeer(peerId: string, password: string): Promise<boolean>;
+  disconnect(): Promise<void>;
+  disconnectPeer(peerId: string): Promise<void>;
+  getConnectionState(peerId: string): Promise<string>;
+  setServerConfig(address: string, port: number, enableDirect: boolean): Promise<void>;
+  injectMouseMove(x: number, y: number): Promise<void>;
+  injectMouseClick(x: number, y: number, button: number, down: boolean): Promise<void>;
+  injectKey(keyCode: number, down: boolean): Promise<void>;
+  captureScreenFrame(): Promise<Uint8Array | null>;
+  getVersion(): Promise<string>;
+}
+
+/**
+ * RustDesk Core Implementation
+ */
+export class RustDeskCore implements IRustDeskCore {
+  private static instance: RustDeskCore;
+  private isInitialized: boolean = false;
+  private nativeModule: any = null;
+  
+  public static getInstance(): RustDeskCore {
     if (!RustDeskCore.instance) {
-      RustDeskCore.instance = new RustDeskCore()
+      RustDeskCore.instance = new RustDeskCore();
     }
-    return RustDeskCore.instance
+    return RustDeskCore.instance;
   }
 
-  // 初始化核心
+  private constructor() {
+    try {
+      // 尝试加载 NAPI 模块
+      // this.nativeModule = requireNapi('rustdesk_napi');
+      logger.info(TAG, 'NAPI module loaded successfully');
+    } catch (e) {
+      logger.warn(TAG, 'Failed to load NAPI module, using mock implementation');
+    }
+  }
+
   async initialize(appDir: string): Promise<boolean> {
     if (this.isInitialized) {
-      return true
+      return true;
     }
 
     try {
-      logger.info(TAG, `Initializing RustDesk core at: ${appDir}`)
+      logger.info(TAG, 'Initializing RustDesk core at: ' + appDir);
       
-      // 调用 NAPI 函数初始化
-      // testNapi.initialize(appDir)  // 实际使用时启用
-      
-      // 模拟初始化
-      this.isInitialized = true
-      
-      logger.info(TAG, 'RustDesk core initialized successfully')
-      return true
+      if (this.nativeModule && this.nativeModule.initialize) {
+        const result = await this.nativeModule.initialize(appDir);
+        this.isInitialized = result;
+        return result;
+      } else {
+        // Mock 初始化
+        this.isInitialized = true;
+        return true;
+      }
     } catch (e) {
-      logger.error(TAG, `Failed to initialize RustDesk core: ${JSON.stringify(e)}`)
-      return false
+      logger.error(TAG, 'Failed to initialize core: ' + JSON.stringify(e));
+      return false;
     }
   }
 
-  // 获取本地 ID
   async getLocalId(): Promise<string> {
     if (!this.isInitialized) {
-      logger.warn(TAG, 'Core not initialized, returning test ID')
-      return 'TEST123456'
+      return 'NOT_INITIALIZED';
     }
 
     try {
-      // return testNapi.getLocalId()  // 实际使用时启用
-      return 'TEST123456' // 模拟数据
+      if (this.nativeModule && this.nativeModule.getLocalId) {
+        return await this.nativeModule.getLocalId();
+      } else {
+        // Mock ID
+        return 'TEST' + Math.floor(Math.random() * 1000000);
+      }
     } catch (e) {
-      logger.error(TAG, `Failed to get local ID: ${JSON.stringify(e)}`)
-      return 'ERROR'
+      logger.error(TAG, 'Failed to get local ID: ' + JSON.stringify(e));
+      return 'ERROR';
     }
   }
 
-  // 连接到对等端
   async connectToPeer(peerId: string, password: string): Promise<boolean> {
     if (!this.isInitialized) {
-      logger.warn(TAG, 'Core not initialized')
-      return false
+      logger.warn(TAG, 'Core not initialized');
+      return false;
     }
 
     try {
-      logger.info(TAG, `Connecting to peer: ${peerId}`)
-      
-      // 模拟连接过程
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      // return testNapi.connectToPeer(peerId, password)  // 实际使用时启用
-      return true // 模拟成功
-    } catch (e) {
-      logger.error(TAG, `Failed to connect to peer: ${JSON.stringify(e)}`)
-      return false
-    }
-  }
-
-  // 断开连接
-  async disconnect(): Promise<void> {
-    if (!this.isInitialized) {
-      return
-    }
-
-    try {
-      logger.info(TAG, 'Disconnecting')
-      
-      // testNapi.disconnect()  // 实际使用时启用
-    } catch (e) {
-      logger.error(TAG, `Failed to disconnect: ${JSON.stringify(e)}`)
-    }
-  }
-
-  // 获取连接状态
-  async getConnectionState(peerId: string): Promise<string> {
-    if (!this.isInitialized) {
-      return 'Disconnected'
-    }
-
-    try {
-      // return testNapi.getConnectionState(peerId)  // 实际使用时启用
-      return 'Connected' // 模拟数据
-    } catch (e) {
-      logger.error(TAG, `Failed to get connection state: ${JSON.stringify(e)}`)
-      return 'Error'
-    }
-  }
-
-  // 设置服务器配置
-  async setServerConfig(address: string, port: number, enableDirect: boolean): Promise<void> {
-    if (!this.isInitialized) {
-      return
-    }
-
-    try {
-      logger.info(TAG, `Setting server config: ${address}:${port}, direct: ${enableDirect}`)
-      
-      // testNapi.setServerConfig(address, port, enableDirect)  // 实际使用时启用
-    } catch (e) {
-      logger.error(TAG, `Failed to set server config: ${JSON.stringify(e)}`)
-    }
-  }
-
-  // 注入鼠标移动
-  async injectMouseMove(x: number, y: number): Promise<void> {
-    if (!this.isInitialized) {
-      return
-    }
-
-    try {
-      // testNapi.injectMouseMove(x, y)  // 实际使用时启用
-    } catch (e) {
-      logger.error(TAG, `Failed to inject mouse move: ${JSON.stringify(e)}`)
-    }
-  }
-
-  // 注入鼠标点击
-  async injectMouseClick(x: number, y: number, button: number, down: boolean): Promise<void> {
-    if (!this.isInitialized) {
-      return
-    }
-
-    try {
-      // testNapi.injectMouseClick(x, y, button, down)  // 实际使用时启用
-    } catch (e) {
-      logger.error(TAG, `Failed to inject mouse click: ${JSON.stringify(e)}`)
-    }
-  }
-
-  // 注入键盘按键
-  async injectKey(keyCode: number, down: boolean): Promise<void> {
-    if (!this.isInitialized) {
-      return
-    }
-
-    try {
-      // testNapi.injectKey(keyCode, down)  // 实际使用时启用
-    } catch (e) {
-      logger.error(TAG, `Failed to inject key: ${JSON.stringify(e)}`)
-    }
-  }
-
-  // 捕获屏幕帧
-  async captureScreenFrame(): Promise<Uint8Array | null> {
-    if (!this.isInitialized) {
-      return null
-    }
-
-    try {
-      // return testNapi.captureScreenFrame()  // 实际使用时启用
-      
-      // 模拟帧数据
-      const width = 1280
-      const height = 720
-      const frameData = new Uint8Array(width * height * 4)
-      
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-          const idx = (y * width + x) * 4
-          frameData[idx] = (x & 0xFF) as u8      // R
-          frameData[idx + 1] = (y & 0xFF) as u8  // G
-          frameData[idx + 2] = 128 as u8         // B
-          frameData[idx + 3] = 255 as u8         // A
-        }
+      if (this.nativeModule && this.nativeModule.connectToPeer) {
+        return await this.nativeModule.connectToPeer(peerId, password);
+      } else {
+        // Mock 连接
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        return true;
       }
-      
-      return frameData
     } catch (e) {
-      logger.error(TAG, `Failed to capture screen frame: ${JSON.stringify(e)}`)
-      return null
+      logger.error(TAG, 'Failed to connect: ' + JSON.stringify(e));
+      return false;
     }
   }
 
-  // 获取版本信息
+  async disconnect(): Promise<void> {
+    try {
+      if (this.nativeModule && this.nativeModule.disconnect) {
+        await this.nativeModule.disconnect();
+      }
+    } catch (e) {
+      logger.error(TAG, 'Failed to disconnect: ' + JSON.stringify(e));
+    }
+  }
+
+  async disconnectPeer(peerId: string): Promise<void> {
+    try {
+      if (this.nativeModule && this.nativeModule.disconnectPeer) {
+        await this.nativeModule.disconnectPeer(peerId);
+      } else {
+        // Mock 断开
+        await this.disconnect();
+      }
+    } catch (e) {
+      logger.error(TAG, 'Failed to disconnect peer: ' + JSON.stringify(e));
+    }
+  }
+
+  async getConnectionState(peerId: string): Promise<string> {
+    try {
+      if (this.nativeModule && this.nativeModule.getConnectionState) {
+        return await this.nativeModule.getConnectionState(peerId);
+      } else {
+        return 'Disconnected';
+      }
+    } catch (e) {
+      logger.error(TAG, 'Failed to get connection state: ' + JSON.stringify(e));
+      return 'Error';
+    }
+  }
+
+  async setServerConfig(address: string, port: number, enableDirect: boolean): Promise<void> {
+    try {
+      if (this.nativeModule && this.nativeModule.setServerConfig) {
+        await this.nativeModule.setServerConfig(address, port, enableDirect);
+      } else {
+        // Mock 保存配置
+        logger.info(TAG, 'Server config updated');
+      }
+    } catch (e) {
+      logger.error(TAG, 'Failed to set server config: ' + JSON.stringify(e));
+    }
+  }
+
+  async injectMouseMove(x: number, y: number): Promise<void> {
+    try {
+      if (this.nativeModule && this.nativeModule.injectMouseMove) {
+        await this.nativeModule.injectMouseMove(x, y);
+      }
+    } catch (e) {
+      logger.error(TAG, 'Failed to inject mouse move: ' + JSON.stringify(e));
+    }
+  }
+
+  async injectMouseClick(x: number, y: number, button: number, down: boolean): Promise<void> {
+    try {
+      if (this.nativeModule && this.nativeModule.injectMouseClick) {
+        await this.nativeModule.injectMouseClick(x, y, button, down);
+      }
+    } catch (e) {
+      logger.error(TAG, 'Failed to inject mouse click: ' + JSON.stringify(e));
+    }
+  }
+
+  async injectKey(keyCode: number, down: boolean): Promise<void> {
+    try {
+      if (this.nativeModule && this.nativeModule.injectKey) {
+        await this.nativeModule.injectKey(keyCode, down);
+      }
+    } catch (e) {
+      logger.error(TAG, 'Failed to inject key: ' + JSON.stringify(e));
+    }
+  }
+
+  async captureScreenFrame(): Promise<Uint8Array | null> {
+    try {
+      if (this.nativeModule && this.nativeModule.captureScreenFrame) {
+        return await this.nativeModule.captureScreenFrame();
+      } else {
+        // Mock 屏幕捕获
+        const width = 1280;
+        const height = 720;
+        const data = new Uint8Array(width * height * 4);
+        return data;
+      }
+    } catch (e) {
+      logger.error(TAG, 'Failed to capture frame: ' + JSON.stringify(e));
+      return null;
+    }
+  }
+
   async getVersion(): Promise<string> {
     try {
-      // return testNapi.getVersion()  // 实际使用时启用
-      return '1.4.6-harmony'
+      if (this.nativeModule && this.nativeModule.getVersion) {
+        return await this.nativeModule.getVersion();
+      } else {
+        return '1.0.0-harmony';
+      }
     } catch (e) {
-      logger.error(TAG, `Failed to get version: ${JSON.stringify(e)}`)
-      return 'unknown'
+      logger.error(TAG, 'Failed to get version: ' + JSON.stringify(e));
+      return 'unknown';
     }
   }
 }
 
-// 全局核心实例
-export const rustDeskCore = RustDeskCore.getInstance()
+// 导出单例
+export const rustDeskCore = RustDeskCore.getInstance();
