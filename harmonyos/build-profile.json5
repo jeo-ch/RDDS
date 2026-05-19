@@ -1,24 +1,5 @@
 {
-  "apiType": "stageMode",
-  "buildOption": {
-    "externalNativeOptions": {
-      "path": "src/main/cpp/CMakeLists.txt",
-      "arguments": "",
-      "cppFlags": "-Werror -Wall -Wextra",
-      "abiFilters": [
-        "armeabi-v7a",
-        "arm64-v8a"
-      ]
-    },
-    "arkOptions": {
-      "obfuscation": {
-        "ruleOptions": {
-          "enable": true,
-          "obfuscationType": "abbreviation",
-          "obfuscationLevel": "advanced"
-        }
-      }
-    },
+  "app": {
     "signingConfigs": [
       {
         "name": "default",
@@ -32,41 +13,27 @@
           "signAlg": "SHA256withECDSA"
         }
       }
+    ],
+    "targets": [
+      {
+        "name": "default",
+        "runtimeOS": "HarmonyOS",
+        "compatibleSdkVersion": "5.0.0(12)"
+      }
     ]
   },
-  "buildOptionSet": [
+  "modules": [
     {
-      "name": "release",
-      "arkOptions": {
-        "obfuscation": {
-          "ruleOptions": {
-            "enable": true,
-            "files": [
-              "./build-profile.json5"
-            ]
-          }
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
         }
-      }
-    }
-  ],
-  "products": [
-    {
-      "name": "default",
-      "signingConfig": "default",
-      "compatibleSdkVersion": "5.0.0(12)",
-      "runtimeOS": "HarmonyOS",
-      "buildOption": {
-        "cleanAction": "delete",
-        "debug": {
-          "packOptions": {
-            "ignore": [
-              ".git",
-              ".vscode",
-              "node_modules"
-            ]
-          }
-        }
-      }
+      ]
     }
   ]
 }

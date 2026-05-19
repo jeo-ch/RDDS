@@ -1,0 +1,10 @@
+node_modules/
+.hvigor/cache/
+.hvigor/daemon/
+*.log
+.idea/
+.vscode/
+*.iml
+.DS_Store
+build/
+oh_modules/

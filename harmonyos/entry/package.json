@@ -1,0 +1,12 @@
+{
+  "name": "rustdesk_harmony",
+  "version": "1.0.0",
+  "description": "RustDesk - 远程桌面控制",
+  "main": "",
+  "author": "",
+  "license": "",
+  "dependencies": {},
+  "devDependencies": {
+    "@ohos/hypium": "1.0.16"
+  }
+}
