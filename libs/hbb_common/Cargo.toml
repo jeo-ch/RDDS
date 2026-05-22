@@ -14,10 +14,10 @@ webrtc = ["dep:webrtc"]
 # new flexi_logger failed on rustc 1.75
 flexi_logger = { version = "0.27", features = ["async"] }
 protobuf = { version = "3.7", features = ["with-bytes"] }
-tokio = { version = "1.44", features = ["full"] }
+tokio = { version = "1.52", features = ["full"] }
 tokio-util = { version = "0.7", features = ["full"] }
 futures = "0.3"
-bytes = { version = "1.10", features = ["serde"] }
+bytes = { version = "1.11", features = ["serde"] }
 log = "0.4"
 env_logger = "0.11"
 socket2 = { version = "0.3", features = ["reuseport"] }
@@ -41,7 +41,7 @@ backtrace = "0.3"
 libc = "0.2"
 dlopen = "0.1"
 toml = "0.7"
-uuid = { version = "1.16", features = ["v4"] }
+uuid = { version = "1.20", features = ["v4"] }
 # new sysinfo issue: https://github.com/rustdesk/rustdesk/pull/6330#issuecomment-2270871442
 sysinfo = { git = "https://github.com/rustdesk-org/sysinfo", branch = "rlim_max" }
 # new flexi_logger failed on nightly rustc 1.75 for x86
@@ -61,9 +61,9 @@ tokio-native-tls = "0.3"
 tokio-tungstenite = { version = "0.26", features = ["native-tls", "rustls-tls-native-roots", "rustls-tls-webpki-roots"] }
 tungstenite = { version = "0.26", features = ["native-tls", "rustls-tls-native-roots", "rustls-tls-webpki-roots"] }
 rustls-platform-verifier = "0.6"
-rustls-pki-types = "1.11"
+rustls-pki-types = "1.14"
 rustls-native-certs = "0.8"
-webpki-roots = "1.0.4"
+webpki-roots = "1.0.7"
 async-recursion = "1.1"
 webrtc = { version = "0.14.0", optional = true }
 libloading = "0.8"
@@ -77,7 +77,7 @@ machine-uid = { git = "https://github.com/rustdesk-org/machine-uid" }
 protobuf-codegen = { version = "3.7" }
 
 [dev-dependencies]
-clap = "4.5.51"
+clap = "4.6.1"
 webrtc = "0.14.0"
 
 [target.'cfg(target_os = "windows")'.dependencies]
