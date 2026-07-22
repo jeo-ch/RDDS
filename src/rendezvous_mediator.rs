@@ -14,6 +14,7 @@ use hbb_common::{
     anyhow::{self, bail},
     config::{
         self, keys::*, option2bool, use_ws, Config, CONNECT_TIMEOUT, REG_INTERVAL, RENDEZVOUS_PORT,
+        ControlledContext,
     },
     futures::future::join_all,
     log,

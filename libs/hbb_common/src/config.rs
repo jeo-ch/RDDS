@@ -48,6 +48,9 @@ const PERMANENT_PASSWORD_HASH_PREFIX: &str = "01";
 const PERMANENT_PASSWORD_H1_LEN: usize = 32;
 const DEFAULT_SALT_LEN: usize = 32;
 
+/// Context for controlled sessions (used in rendezvous protocol)
+pub type ControlledContext = String;
+
 fn is_permanent_password_hashed_storage(v: &str) -> bool {
     decode_permanent_password_h1_from_storage(v).is_some()
 }
@@ -1271,9 +1274,9 @@ impl Config {
         log::info!("id updated from {} to {}", id, new_id);
     }
 
-    pub fn set_permanent_password(password: &str) {
+    pub fn set_permanent_password(password: &str) -> bool {
         if Self::is_disable_change_permanent_password() {
-            return;
+            return false;
         }
         if HARD_SETTINGS
             .read()
@@ -1282,7 +1285,7 @@ impl Config {
             .map_or(false, |v| v == password)
         {
             if CONFIG.read().unwrap().password.is_empty() {
-                return;
+                return false;
             }
         }
 
@@ -1294,11 +1297,12 @@ impl Config {
             Self::compute_permanent_password_storage_for_update(&mut config, password)
         };
         if stored == config.password {
-            return;
+            return false;
         }
         config.password = stored;
         config.store();
         Self::clear_trusted_devices();
+        true
     }
 
     fn compute_permanent_password_storage_for_update(
@@ -2677,6 +2681,51 @@ impl TrustedDevice {
     }
 }
 
+pub fn decode_preset_password_h1_from_storage(
+    storage: &str,
+) -> Option<[u8; PERMANENT_PASSWORD_H1_LEN]> {
+    decode_permanent_password_h1_from_storage(storage)
+}
+
+pub fn local_permanent_password_storage_is_usable_for_auth(storage: &str, salt: &str) -> bool {
+    !storage.is_empty() && !salt.is_empty() && is_permanent_password_hashed_storage(storage)
+}
+
+pub fn preset_permanent_password_storage_is_usable_for_auth(storage: &str, salt: &str) -> bool {
+    !storage.is_empty() && !salt.is_empty() && is_permanent_password_hashed_storage(storage)
+}
+
+pub fn get_effective_permanent_password_salt() -> String {
+    let config = CONFIG.read().unwrap();
+    let mut salt = config.salt.clone();
+    if salt.is_empty() {
+        drop(config);
+        salt = Config::get_auto_password(DEFAULT_SALT_LEN);
+    }
+    salt
+}
+
+pub fn is_using_preset_password() -> bool {
+    HARD_SETTINGS
+        .read()
+        .unwrap()
+        .get("password")
+        .map_or(false, |v| !v.is_empty())
+}
+
+pub fn get_preset_password_storage_and_salt() -> (String, String) {
+    let hard_settings = HARD_SETTINGS.read().unwrap();
+    let storage = hard_settings
+        .get("password")
+        .cloned()
+        .unwrap_or_default();
+    let salt = hard_settings
+        .get("preset_password_salt")
+        .cloned()
+        .unwrap_or_default();
+    (storage, salt)
+}
+
 deserialize_default!(deserialize_string, String);
 deserialize_default!(deserialize_bool, bool);
 deserialize_default!(deserialize_i32, i32);
@@ -2951,6 +3000,10 @@ pub mod keys {
     pub const OPTION_ALLOW_DEEP_LINK_SERVER_SETTINGS: &str = "allow-deep-link-server-settings";
     pub const OPTION_ONE_WAY_FILE_TRANSFER: &str = "one-way-file-transfer";
     pub const OPTION_ALLOW_HTTPS_21114: &str = "allow-https-21114";
+    pub const OPTION_ALLOW_SCOPE_VIOLATION_ALARM: &str = "allow-scope-violation-alarm";
+    pub const OPTION_ALLOW_SCOPE_VIOLATION_CLOSE: &str = "allow-scope-violation-close";
+    pub const OPTION_ALLOW_COMMAND_LINE_SETTINGS_WHEN_SETTINGS_DISABLED: &str =
+        "allow-command-line-settings-when-settings-disabled";
     pub const OPTION_USE_RAW_TCP_FOR_API: &str = "use-raw-tcp-for-api";
     pub const OPTION_ALLOW_HOSTNAME_AS_ID: &str = "allow-hostname-as-id";
     pub const OPTION_HIDE_POWERED_BY_ME: &str = "hide-powered-by-me";

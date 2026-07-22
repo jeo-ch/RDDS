@@ -58,6 +58,7 @@ message PunchHole {
   int32 upnp_port = 6;
   bytes socket_addr_v6 = 7;
   ControlPermissions control_permissions = 8;
+  string controlled_context = 9;
 }
 
 message TestNatRequest {
@@ -146,6 +147,7 @@ message RequestRelay {
   ConnType conn_type = 7;
   string token = 8;
   ControlPermissions control_permissions = 9;
+  string controlled_context = 10;
 }
 
 message RelayResponse {
@@ -174,6 +176,7 @@ message FetchLocalAddr {
   string relay_server = 2;
   bytes socket_addr_v6 = 3;
   ControlPermissions control_permissions = 4;
+  string controlled_context = 5;
 }
 
 message LocalAddr {
