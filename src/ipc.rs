@@ -839,7 +839,7 @@ async fn handle(data: Data, stream: &mut Connection) {
                         "N".to_owned()
                     });
                 } else if name == "permanent-password-is-preset" {
-                    value = Some(if Config::is_using_preset_password() {
+                    value = Some(if config::is_using_preset_password() {
                         "Y".to_owned()
                     } else {
                         "N".to_owned()

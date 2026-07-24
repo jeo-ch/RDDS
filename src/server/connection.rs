@@ -467,7 +467,7 @@ impl Connection {
         let _raii_id = raii::ConnectionID::new(id);
         let _raii_control_permissions_id =
             raii::ControlPermissionsID::new(id, &control_permissions);
-        let salt = Config::get_effective_permanent_password_salt();
+        let salt = config::get_effective_permanent_password_salt();
         let hash = Hash {
             salt,
             challenge: Config::get_auto_password(6),
@@ -1419,7 +1419,7 @@ impl Connection {
         let audit_ref = self
             .controlled_context
             .as_ref()
-            .map(|c| c.conn_audit_ref.as_str())?;
+            .map(|c| c.as_str())?;
         if audit_ref.is_empty() {
             None
         } else {
@@ -2327,7 +2327,7 @@ impl Connection {
                     return true;
                 }
             } else {
-                let (hard, salt) = Config::get_preset_password_storage_and_salt();
+                let (hard, salt) = config::get_preset_password_storage_and_salt();
                 if preset_permanent_password_storage_is_usable_for_auth(&hard, &salt)
                     && self.validate_preset_password_storage(&hard, &salt)
                 {

@@ -503,7 +503,7 @@ impl RendezvousMediator {
         }
         let meta = connection_meta(
             rr.control_permissions.into_option(),
-            rr.controlled_context.into_option(),
+            Some(rr.controlled_context),
         );
 
         self.create_relay(
@@ -582,7 +582,7 @@ impl RendezvousMediator {
         let mut socket_addr_v6 = Default::default();
         let meta = connection_meta(
             fla.control_permissions.clone().into_option(),
-            fla.controlled_context.clone().into_option(),
+            Some(fla.controlled_context.clone()),
         );
         if peer_addr_v6.port() > 0 && !relay {
             socket_addr_v6 = start_ipv6(peer_addr_v6, addr, server.clone(), meta.clone()).await;
@@ -661,7 +661,7 @@ impl RendezvousMediator {
         let mut socket_addr_v6 = Default::default();
         let meta = connection_meta(
             ph.control_permissions.into_option(),
-            ph.controlled_context.into_option(),
+            Some(ph.controlled_context),
         );
         if peer_addr_v6.port() > 0 && !relay {
             socket_addr_v6 =
