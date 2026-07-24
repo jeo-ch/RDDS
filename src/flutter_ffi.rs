@@ -2504,7 +2504,7 @@ pub fn is_preset_password() -> bool {
 
     // On mobile, we have no service IPC; verify against local storage.
     #[cfg(any(target_os = "android", target_os = "ios"))]
-    return config::Config::is_using_preset_password();
+    return config::is_using_preset_password();
 }
 
 // Don't call this function for desktop version.
