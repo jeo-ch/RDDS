@@ -50,7 +50,11 @@ env:
 
 jobs:
   generate-bridge:
-    uses: ./.github/workflows/bridge.yml
+    # VUMSTAR: use the dedicated bridge workflow that only generates the default
+    # Flutter 3.22.3 bridge. The official bridge.yml also generates a Flutter 3.44
+    # bridge (bridge-artifact-flutter-3.44) for Windows arm64, which VUMSTAR does
+    # not build, so we skip it to save CI time.
+    uses: ./.github/workflows/bridge-vumstar.yml
 
   build-RustDeskTempTopMostWindow:
     uses: ./.github/workflows/third-party-RustDeskTempTopMostWindow.yml
@@ -1270,7 +1274,7 @@ jobs:
         if: env.ANDROID_SIGNING_KEY != null && env.UPLOAD_ARTIFACT == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}.apk
+          name: rustdesk-${{ env.VERSION }}-universal.apk
           path: ${{steps.sign-rustdesk.outputs.signedReleaseFile}}
 
       - name: Publish signed apk package
