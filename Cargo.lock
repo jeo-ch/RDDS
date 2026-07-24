@@ -516,6 +516,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-process"
+version = "2.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fc50921ec0055cdd8a16de48773bfeec5c972598674347252c0399676be7da75"
+dependencies = [
+ "async-channel",
+ "async-io 2.3.3",
+ "async-lock 3.4.0",
+ "async-signal",
+ "async-task",
+ "blocking",
+ "cfg-if 1.0.0",
+ "event-listener 5.3.1",
+ "futures-lite 2.3.0",
+ "rustix 1.1.2",
+]
+
+[[package]]
 name = "async-recursion"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7274,7 +7292,7 @@ dependencies = [
  "android-wakelock",
  "android_logger",
  "arboard",
- "async-process",
+ "async-process 2.5.0",
  "async-trait",
  "bytemuck",
  "bytes",
@@ -11053,7 +11071,7 @@ dependencies = [
  "async-fs",
  "async-io 1.13.0",
  "async-lock 2.8.0",
- "async-process",
+ "async-process 1.8.1",
  "async-recursion",
  "async-task",
  "async-trait",
