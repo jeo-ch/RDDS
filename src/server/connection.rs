@@ -2007,8 +2007,8 @@ impl Connection {
                 #[cfg(not(any(target_os = "android", target_os = "ios")))]
                 let _h = try_start_record_cursor_pos();
                 self.auto_disconnect_timer = Self::get_auto_disconenct_timer();
-                s.try_add_primay_video_service();
-                s.add_connection(self.inner.clone(), &noperms);
+                s.try_add_monitor_service(self.display_idx);
+                s.add_monitor_connection(self.inner.clone(), &noperms, self.display_idx);
             }
         }
     }
@@ -4151,7 +4151,9 @@ impl Connection {
         let display_idx = s.display as usize;
         if self.display_idx != display_idx {
             if let Some(server) = self.server.upgrade() {
-                self.switch_display_to(display_idx, server.clone());
+                if !self.switch_display_to(display_idx, server.clone()) {
+                    return;
+                }
 
                 #[cfg(not(any(target_os = "android", target_os = "ios")))]
                 if !self.view_camera && s.width != 0 && s.height != 0 {
@@ -4178,6 +4180,13 @@ impl Connection {
         }
     }
 
+    fn video_source_count(video_source: VideoSource) -> usize {
+        match video_source {
+            VideoSource::Monitor => display_service::get_sync_displays().len(),
+            VideoSource::Camera => camera::Cameras::get_sync_cameras().len(),
+        }
+    }
+
     fn video_source(&self) -> VideoSource {
         if self.view_camera {
             VideoSource::Camera
@@ -4186,18 +4195,28 @@ impl Connection {
         }
     }
 
-    fn switch_display_to(&mut self, display_idx: usize, server: Arc<RwLock<Server>>) {
+    fn switch_display_to(&mut self, display_idx: usize, server: Arc<RwLock<Server>>) -> bool {
+        let source_count = Self::video_source_count(self.video_source());
+        if display_idx >= source_count {
+            // Do not remap an explicit switch: its resolution belongs to the requested source.
+            log::warn!(
+                "Ignore switch to invalid {:?} index {}, available source count: {}",
+                self.video_source(),
+                display_idx,
+                source_count
+            );
+            return false;
+        }
+
         let new_service_name = video_service::get_service_name(self.video_source(), display_idx);
         let old_service_name =
             video_service::get_service_name(self.video_source(), self.display_idx);
         let mut lock = server.write().unwrap();
-        if display_idx != *display_service::PRIMARY_DISPLAY_IDX {
-            if !lock.contains(&new_service_name) {
-                lock.add_service(Box::new(video_service::new(
-                    self.video_source(),
-                    display_idx,
-                )));
-            }
+        if !lock.contains(&new_service_name) {
+            lock.add_service(Box::new(video_service::new(
+                self.video_source(),
+                display_idx,
+            )));
         }
         // For versions greater than 1.2.4, a `CaptureDisplays` message will be sent immediately.
         // Unnecessary capturers will be removed then.
@@ -4206,6 +4225,7 @@ impl Connection {
         }
         lock.subscribe(&new_service_name, self.inner.clone(), true);
         self.display_idx = display_idx;
+        true
     }
 
     #[cfg(windows)]
