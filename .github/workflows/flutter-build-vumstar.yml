@@ -142,7 +142,7 @@ jobs:
           prefix-key: ${{ matrix.job.os }}
 
       - name: Setup vcpkg with Github Actions binary cache
-        uses: lukka/run-vcpkg@v11
+        uses: lukka/run-vcpkg@v11.6
         with:
           vcpkgDirectory: C:\vcpkg
           vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
@@ -335,7 +335,7 @@ jobs:
           prefix-key: ${{ matrix.job.os }}-sciter
 
       - name: Setup vcpkg with Github Actions binary cache
-        uses: lukka/run-vcpkg@v11
+        uses: lukka/run-vcpkg@v11.6
         with:
           vcpkgDirectory: C:\vcpkg
           vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
@@ -481,7 +481,7 @@ jobs:
           [[ "3.24.5" == ${{env.FLUTTER_VERSION}} ]] && git apply ${{ github.workspace }}/.github/patches/flutter_3.24.4_dropdown_menu_enableFilter.diff
 
       - name: Setup vcpkg with Github Actions binary cache
-        uses: lukka/run-vcpkg@v11
+        uses: lukka/run-vcpkg@v11.6
         with:
           vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
           doNotCache: false
@@ -685,7 +685,7 @@ jobs:
           path: ./
 
       - name: Setup vcpkg with Github Actions binary cache
-        uses: lukka/run-vcpkg@v11
+        uses: lukka/run-vcpkg@v11.6
         with:
           vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
           doNotCache: false
@@ -925,7 +925,7 @@ jobs:
           add-to-path: true
 
       - name: Setup vcpkg with Github Actions binary cache
-        uses: lukka/run-vcpkg@v11
+        uses: lukka/run-vcpkg@v11.6
         with:
           vcpkgDirectory: /opt/artifacts/vcpkg
           vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
@@ -1382,7 +1382,7 @@ jobs:
 
       - name: Setup vcpkg with Github Actions binary cache
         if: matrix.job.arch == 'x86_64' || env.UPLOAD_ARTIFACT == 'true'
-        uses: lukka/run-vcpkg@v11
+        uses: lukka/run-vcpkg@v11.6
         with:
           vcpkgDirectory: /opt/artifacts/vcpkg
           vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
