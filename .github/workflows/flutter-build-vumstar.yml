@@ -521,7 +521,7 @@ jobs:
       - name: Build rustdesk lib
         run: |
           rustup target add ${{ matrix.job.target }}
-          cargo build --features flutter,hwcodec --release --target aarch64-apple-ios --lib
+          cargo build --locked --features flutter,hwcodec --release --target aarch64-apple-ios --lib
           
       - name: Upload liblibrustdesk.a Artifacts
         uses: actions/upload-artifact@v4
@@ -1493,7 +1493,7 @@ jobs:
               export JOBS=""
             fi
             echo $JOBS
-            cargo build --lib $JOBS --features hwcodec,flutter,unix-file-copy-paste --release
+            cargo build --locked --lib $JOBS --features hwcodec,flutter,unix-file-copy-paste --release
             rm -rf target/release/deps target/release/build
             rm -rf ~/.cargo
 
@@ -1823,7 +1823,7 @@ jobs:
             # build rustdesk
             python3 ./res/inline-sciter.py
             export CARGO_INCREMENTAL=0
-            cargo build --features inline${{ matrix.job.extra_features }} --release --bins --jobs 1
+            cargo build --locked --features inline${{ matrix.job.extra_features }} --release --bins --jobs 1
             # make debian package
             mkdir -p ./Release
             mv ./target/release/rustdesk ./Release/rustdesk
