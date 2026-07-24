@@ -33,7 +33,7 @@ features = ["dxgi", "dxgi1_2", "dxgi1_5", "d3d11", "winuser", "winerror", "errha
 block = "0.1"
 
 [target.'cfg(target_os = "android")'.dependencies]
-android_logger = "0.13"
+android_logger = "0.15"
 jni = "0.21"
 lazy_static = "1.4"
 log = "0.4"
