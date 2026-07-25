@@ -1457,6 +1457,11 @@ impl AudioHandler {
                 }
                 #[cfg(target_os = "linux")]
                 {
+                    // SAFETY: `buffer` is a `Vec<f32>` allocated by the audio backend.
+                    // `as_ptr()` returns a valid pointer to the first element.
+                    // `n * 4` is the byte length of `n` f32 samples (each 4 bytes),
+                    // which matches the buffer's allocated size. The buffer is
+                    // valid for the duration of this slice.
                     let data_u8 =
                         unsafe { std::slice::from_raw_parts::<u8>(buffer.as_ptr() as _, n * 4) };
                     self.simple.as_mut().map(|x| x.write(data_u8));

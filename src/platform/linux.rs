@@ -1081,6 +1081,24 @@ fn is_opensuse() -> bool {
     false
 }
 
+fn is_valid_username(name: &str) -> bool {
+    let mut chars = name.chars();
+    match chars.next() {
+        Some(c) if c.is_ascii_alphabetic() || c == '_' => {}
+        _ => return false,
+    }
+    chars.all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-' || c == '.')
+}
+
+fn is_valid_env_key(key: &str) -> bool {
+    let mut it = key.chars();
+    match it.next() {
+        Some(c) if c.is_ascii_alphabetic() || c == '_' => {}
+        _ => return false,
+    }
+    it.all(|c| c.is_ascii_alphanumeric() || c == '_')
+}
+
 pub fn run_as_user<I, K, V>(
     arg: Vec<&str>,
     user: Option<(String, String)>,
@@ -1095,6 +1113,11 @@ where
         Some(id_name) => id_name,
         None => get_active_user_id_name(),
     };
+
+    if !is_valid_username(&username) {
+        bail!("Invalid username '{}': only [A-Za-z_][A-Za-z0-9_.-]* allowed", username);
+    }
+
     let cmd = std::env::current_exe()?;
     if uid.is_empty() {
         bail!("No valid uid");
@@ -1107,7 +1130,26 @@ where
         args.append(&mut arg.clone());
         // -E is required to preserve env
         args.insert(0, "-E");
-        let task = Command::new("sudo").envs(envs).args(args).spawn()?;
+        // Filter envs through whitelist before passing to sudo
+        let filtered_envs: Vec<(String, OsString)> = envs
+            .into_iter()
+            .filter_map(|(k, v)| {
+                let key = k.as_ref().to_string_lossy();
+                if is_valid_env_key(&key) {
+                    Some((key.into_owned(), v.as_ref().to_owned()))
+                } else {
+                    log::warn!(
+                        "Skipping environment variable with invalid key: '{}'. Only [A-Za-z_][A-Za-z0-9_]* are allowed in sudo context.",
+                        key
+                    );
+                    None
+                }
+            })
+            .collect();
+        let task = Command::new("sudo")
+            .envs(filtered_envs)
+            .args(args)
+            .spawn()?;
         Ok(Some(task))
     } else {
         // Fallback: sudo -u username env VAR=VALUE ... cmd args
@@ -1121,14 +1163,6 @@ where
         // Most legitimate env vars follow [A-Za-z_][A-Za-z0-9_]* convention.
         // Variables with dots (e.g., "java.home") are Java system properties, not env vars.
         // Being restrictive here is intentional for security in this sudo context.
-        fn is_valid_env_key(key: &str) -> bool {
-            let mut it = key.chars();
-            match it.next() {
-                Some(c) if c.is_ascii_alphabetic() || c == '_' => {}
-                _ => return false,
-            }
-            it.all(|c| c.is_ascii_alphanumeric() || c == '_')
-        }
 
         let mut sudo = Command::new("sudo");
         sudo.arg("-u").arg(&username).arg("--").arg("env").arg(xdg);

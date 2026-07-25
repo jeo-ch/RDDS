@@ -1374,14 +1374,19 @@ impl Config {
         }
 
         log::warn!("Permanent password storage is not hashed; verifying as plaintext");
-        // Use constant-time comparison to prevent timing attacks
-        if storage.len() != input.len() {
-            return false;
-        }
+        // Use constant-time comparison to prevent timing attacks.
+        // Always iterate over the maximum length; shorter input is padded with zeros
+        // so the loop count does not leak the password length.
+        let max_len = storage.len().max(input.len());
         let mut result: u8 = 0;
-        for (a, b) in storage.bytes().zip(input.bytes()) {
+        for i in 0..max_len {
+            let a = storage.bytes().nth(i).unwrap_or(0);
+            let b = input.bytes().nth(i).unwrap_or(0);
             result |= a ^ b;
         }
+        // Also incorporate length mismatch into the result to prevent
+        // length-based oracle attacks via early return.
+        result |= (storage.len() ^ input.len()) as u8;
         result == 0
     }
 
