@@ -25,7 +25,6 @@ endif()
 # 创建 NAPI 绑定库
 add_library(rustdesk_napi SHARED
   napi_bindings.cpp
-  napi_module.cpp
 )
 
 # 链接 NAPI 库
@@ -39,11 +38,15 @@ set_target_properties(rustdesk_napi PROPERTIES
   LINK_FLAGS "-Wl,--hash-style=both"
 )
 
-# Rust 核心库链接（当可用时）
-# if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../../native/harmony_ffi/target/aarch64-unknown-linux-ohos/release/librustdesk_core.a)
-#   add_library(rustdesk_core STATIC IMPORTED)
-#   set_target_properties(rustdesk_core PROPERTIES
-#     IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../../native/harmony_ffi/target/aarch64-unknown-linux-ohos/release/librustdesk_core.a
-#   )
-#   target_link_libraries(rustdesk_napi PRIVATE rustdesk_core)
-# endif()
+# Rust 核心库链接（可选：当 Rust 静态库存在时自动链接）
+set(RUST_CORE_LIB "${CMAKE_CURRENT_SOURCE_DIR}/../../../../native/harmony_ffi/target/aarch64-unknown-linux-ohos/release/librustdesk_core.a")
+if(EXISTS ${RUST_CORE_LIB})
+  add_library(rustdesk_core STATIC IMPORTED)
+  set_target_properties(rustdesk_core PROPERTIES
+    IMPORTED_LOCATION ${RUST_CORE_LIB}
+  )
+  target_link_libraries(rustdesk_napi PRIVATE rustdesk_core)
+  message(STATUS "Linked Rust core library: ${RUST_CORE_LIB}")
+else()
+  message(STATUS "Rust core library not found, using mock implementation: ${RUST_CORE_LIB}")
+endif()

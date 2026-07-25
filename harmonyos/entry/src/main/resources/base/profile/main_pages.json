@@ -2,7 +2,6 @@
   "src": [
     "pages/Index",
     "pages/RemoteDesktop",
-    "pages/Settings",
-    "pages/Connect"
+    "pages/Settings"
   ]
 }

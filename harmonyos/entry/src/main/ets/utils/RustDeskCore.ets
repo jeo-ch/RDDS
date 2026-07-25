@@ -36,16 +36,21 @@ export interface IRustDeskCore {
   injectKey(keyCode: number, down: boolean): Promise<void>;
   captureScreenFrame(): Promise<Uint8Array | null>;
   getVersion(): Promise<string>;
+  isNativeAvailable(): boolean;
 }
 
 /**
  * RustDesk Core Implementation
+ *
+ * 优先尝试加载 native NAPI 模块 `rustdesk_napi`；若加载失败，
+ * 自动降级到 mock 实现，保证 UI 仍可在模拟器或未编译 native 时运行。
  */
 export class RustDeskCore implements IRustDeskCore {
   private static instance: RustDeskCore;
   private isInitialized: boolean = false;
   private nativeModule: any = null;
-  
+  private nativeAvailable: boolean = false;
+
   public static getInstance(): RustDeskCore {
     if (!RustDeskCore.instance) {
       RustDeskCore.instance = new RustDeskCore();
@@ -54,13 +59,33 @@ export class RustDeskCore implements IRustDeskCore {
   }
 
   private constructor() {
+    this.tryLoadNative();
+  }
+
+  /**
+   * 尝试加载 native NAPI 模块，失败时降级到 mock。
+   */
+  private tryLoadNative(): void {
     try {
-      // 尝试加载 NAPI 模块
-      // this.nativeModule = requireNapi('rustdesk_napi');
-      logger.info(TAG, 'NAPI module loaded successfully');
+      // 鸿蒙 NAPI 模块名必须与 CMakeLists.txt 中 nm_modname 一致
+      this.nativeModule = requireNapi('rustdesk_napi');
+      if (this.nativeModule && typeof this.nativeModule === 'object') {
+        this.nativeAvailable = true;
+        logger.info(TAG, 'Native NAPI module loaded successfully');
+      } else {
+        this.nativeModule = null;
+        this.nativeAvailable = false;
+        logger.warn(TAG, 'NAPI module returned empty, using mock implementation');
+      }
     } catch (e) {
-      logger.warn(TAG, 'Failed to load NAPI module, using mock implementation');
+      this.nativeModule = null;
+      this.nativeAvailable = false;
+      logger.warn(TAG, 'Failed to load NAPI module, using mock implementation: ' + JSON.stringify(e));
     }
+  }
+
+  isNativeAvailable(): boolean {
+    return this.nativeAvailable;
   }
 
   async initialize(appDir: string): Promise<boolean> {
@@ -70,11 +95,11 @@ export class RustDeskCore implements IRustDeskCore {
 
     try {
       logger.info(TAG, 'Initializing RustDesk core at: ' + appDir);
-      
+
       if (this.nativeModule && this.nativeModule.initialize) {
         const result = await this.nativeModule.initialize(appDir);
-        this.isInitialized = result;
-        return result;
+        this.isInitialized = !!result;
+        return this.isInitialized;
       } else {
         // Mock 初始化
         this.isInitialized = true;
@@ -166,7 +191,7 @@ export class RustDeskCore implements IRustDeskCore {
         await this.nativeModule.setServerConfig(address, port, enableDirect);
       } else {
         // Mock 保存配置
-        logger.info(TAG, 'Server config updated');
+        logger.info(TAG, `Server config updated: ${address}:${port}, direct=${enableDirect}`);
       }
     } catch (e) {
       logger.error(TAG, 'Failed to set server config: ' + JSON.stringify(e));
@@ -208,10 +233,9 @@ export class RustDeskCore implements IRustDeskCore {
       if (this.nativeModule && this.nativeModule.captureScreenFrame) {
         return await this.nativeModule.captureScreenFrame();
       } else {
-        // Mock 屏幕捕获
-        const width = 1280;
-        const height = 720;
-        const data = new Uint8Array(width * height * 4);
+        // Mock 屏幕捕获：返回一个 1x1 黑色像素以避免 UI 显示异常
+        const data = new Uint8Array(4);
+        data[0] = 0; data[1] = 0; data[2] = 0; data[3] = 255;
         return data;
       }
     } catch (e) {
@@ -225,7 +249,7 @@ export class RustDeskCore implements IRustDeskCore {
       if (this.nativeModule && this.nativeModule.getVersion) {
         return await this.nativeModule.getVersion();
       } else {
-        return '1.0.0-harmony';
+        return '1.4.6-harmony-mock';
       }
     } catch (e) {
       logger.error(TAG, 'Failed to get version: ' + JSON.stringify(e));

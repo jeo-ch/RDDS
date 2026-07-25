@@ -53,10 +53,10 @@ export default class EntryAbility extends UIAbility {
       grantStatus.authResults.forEach((result: number, index: number) => {
         if (result !== 0) {
           allGranted = false;
-          logger.warn(TAG, `Permission ${permissions[index]} not granted');
+          logger.warn(TAG, `Permission ${permissions[index]} not granted`);
         }
-      };
-      
+      });
+
       if (allGranted) {
         logger.info(TAG, 'All permissions granted');
       }

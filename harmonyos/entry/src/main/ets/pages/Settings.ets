@@ -1,3 +1,10 @@
+import router from '@ohos.router';
+import promptAction from '@ohos.promptAction';
+import { logger } from '@ohos.hilog';
+import { rustDeskCore } from '../utils/RustDeskCore';
+
+const TAG: string = '[RustDesk.Settings]';
+
 @Entry
 @Component
 struct Settings {
@@ -144,17 +151,21 @@ struct Settings {
     .height('100%')
   }
   
-  saveSettings() {
+  async saveSettings() {
     try {
-      const rustCore = requireNapi('rustdesk_core');
-      rustCore.setServerConfig(this.serverAddress, this.serverPort, this.enableDirectAccess);
-      
+      await rustDeskCore.setServerConfig(this.serverAddress, this.serverPort, this.enableDirectAccess);
+
       promptAction.showToast({
         message: '设置已保存',
         duration: 2000
       });
+      logger.info(TAG, 'Settings saved successfully');
     } catch (e) {
-      console.error('Failed to save settings: ' + e);
+      logger.error(TAG, 'Failed to save settings: ' + JSON.stringify(e));
+      promptAction.showToast({
+        message: '保存失败',
+        duration: 2000
+      });
     }
   }
 }
