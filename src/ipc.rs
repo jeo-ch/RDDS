@@ -1322,13 +1322,16 @@ fn user_main_ipc_server_uid() -> ResultType<u32> {
 pub async fn connect(ms_timeout: u64, postfix: &str) -> ResultType<ConnectionTmpl<ConnClient>> {
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     {
-        let use_user_main_ipc = USE_USER_MAIN_IPC.with(|use_user_main| use_user_main.get());
-        let is_root_main_ipc =
-            unsafe { hbb_common::libc::geteuid() == 0 } && postfix.is_empty() && use_user_main_ipc;
-        if is_root_main_ipc {
-            let uid = user_main_ipc_server_uid()?;
-            let path = Config::ipc_path_for_uid(uid, postfix);
-            return connect_with_path(ms_timeout, &path).await;
+        #[cfg(target_os = "linux")]
+        {
+            let use_user_main_ipc = USE_USER_MAIN_IPC.with(|use_user_main| use_user_main.get());
+            let is_root_main_ipc =
+                unsafe { hbb_common::libc::geteuid() == 0 } && postfix.is_empty() && use_user_main_ipc;
+            if is_root_main_ipc {
+                let uid = user_main_ipc_server_uid()?;
+                let path = Config::ipc_path_for_uid(uid, postfix);
+                return connect_with_path(ms_timeout, &path).await;
+            }
         }
         let path = Config::ipc_path(postfix);
         return connect_with_path(ms_timeout, &path).await;
@@ -2133,7 +2136,7 @@ mod test {
         assert!(std::mem::size_of::<Data>() <= 120);
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    #[cfg(target_os = "linux")]
     #[test]
     fn test_service_ipc_path_is_shared_across_uids() {
         assert_eq!(
@@ -2142,7 +2145,7 @@ mod test {
         );
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    #[cfg(target_os = "linux")]
     #[test]
     fn test_ipc_path_differs_by_uid_for_cm() {
         let effective_uid = unsafe { hbb_common::libc::geteuid() as u32 };
