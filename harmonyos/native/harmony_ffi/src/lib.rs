@@ -5,6 +5,12 @@ use hbb_common::log;
 use std::sync::Mutex;
 use lazy_static::lazy_static;
 
+// hbb_common 使用 anyhow::Error，napi 使用 napi::Error，两者不兼容，
+// 这里提供一个统一的转换辅助函数。
+fn map_err<E: std::fmt::Display>(e: E) -> Error {
+    Error::from_reason(e.to_string())
+}
+
 mod capture;
 mod input;
 mod connection;
@@ -38,7 +44,7 @@ pub fn initialize(app_dir: String) -> Result<()> {
 
     *CAPTURER.lock().unwrap() = Some(HarmonyScreenCapturer::new()?);
     *INPUT_INJECTOR.lock().unwrap() = Some(HarmonyInputInjector::new()?);
-    *CONNECTION_MANAGER.lock().unwrap() = Some(HarmonyConnectionManager::new()?);
+    *CONNECTION_MANAGER.lock().unwrap() = Some(HarmonyConnectionManager::new().map_err(map_err)?);
     *VIDEO_DECODER.lock().unwrap() = Some(HarmonyVideoDecoder::new()?);
 
     *initialized = true;
@@ -57,11 +63,36 @@ pub fn get_local_id() -> Result<String> {
 #[napi]
 pub async fn connect_to_peer(peer_id: String, password: String) -> Result<bool> {
     log::info!("connect_to_peer: peer_id={}, password_len={}", peer_id, password.len());
-    let manager = CONNECTION_MANAGER.lock().unwrap();
-    if let Some(manager) = manager.as_ref() {
-        manager.create_connection(peer_id).await
-    } else {
-        Err(Error::from_reason("Connection manager not initialized"))
+
+    // 获取 relay 配置后立即释放 CONNECTION_MANAGER 锁，
+    // 避免跨 .await 持有 std::sync::MutexGuard（不满足 Send）。
+    let (relay_server, relay_port) = {
+        let manager = CONNECTION_MANAGER.lock().unwrap();
+        match manager.as_ref() {
+            Some(m) => m.get_relay_config(),
+            None => return Err(Error::from_reason("Connection manager not initialized")),
+        }
+    };
+
+    // 在锁外进行异步连接
+    let mut session = connection::ConnectionSession::new(peer_id.clone());
+    match session.connect(&relay_server, relay_port).await {
+        Ok(success) => {
+            if success {
+                // 重新获取锁 push session
+                let manager = CONNECTION_MANAGER.lock().unwrap();
+                if let Some(manager) = manager.as_ref() {
+                    manager.add_session(session);
+                }
+                Ok(true)
+            } else {
+                Ok(false)
+            }
+        }
+        Err(e) => {
+            log::error!("Failed to create connection: {}", e);
+            Ok(false)
+        }
     }
 }
 
@@ -69,7 +100,7 @@ pub async fn connect_to_peer(peer_id: String, password: String) -> Result<bool> 
 pub fn disconnect_peer(peer_id: String) -> Result<()> {
     let manager = CONNECTION_MANAGER.lock().unwrap();
     if let Some(manager) = manager.as_ref() {
-        manager.close_connection(&peer_id)?;
+        manager.close_connection(&peer_id).map_err(map_err)?;
     }
     Ok(())
 }
@@ -78,7 +109,7 @@ pub fn disconnect_peer(peer_id: String) -> Result<()> {
 pub fn disconnect() -> Result<()> {
     let mut manager = CONNECTION_MANAGER.lock().unwrap();
     if let Some(mut manager) = manager.take() {
-        manager.close_all()?;
+        manager.close_all().map_err(map_err)?;
     }
     Ok(())
 }
@@ -98,7 +129,8 @@ pub fn get_connection_state(peer_id: String) -> Result<String> {
 pub fn set_server_config(address: String, port: i32, enable_direct: bool) -> Result<()> {
     let mut manager = CONNECTION_MANAGER.lock().unwrap();
     if let Some(manager) = manager.as_mut() {
-        manager.set_relay_server(address, port as u16);
+        // address 在此被 move，先 clone 一份用于后续日志
+        manager.set_relay_server(address.clone(), port as u16);
     }
     // 注意：hbb_common::config::Config 结构体没有 relay_server / relay_port / enable_direct 字段，
     // 服务器配置应通过 set_option 写入 options map。

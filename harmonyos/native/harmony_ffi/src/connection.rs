@@ -1,14 +1,9 @@
 use hbb_common::{
-    rendezvous_proto::{
-        ConnType,
-        RendezvousMessage,
-    },
     ResultType,
     log,
 };
 use std::sync::{Arc, Mutex};
-use tokio::net::{TcpStream, TcpListener};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::TcpStream;
 
 // 连接状态
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -47,11 +42,11 @@ impl ConnectionSession {
 
         // 模拟连接过程
         tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
-        
+
         // 模拟成功连接
         self.state = ConnectionState::Connected;
         log::info!("Successfully connected to peer: {}", self.peer_id);
-        
+
         Ok(true)
     }
 
@@ -91,9 +86,20 @@ impl HarmonyConnectionManager {
         log::info!("Relay server updated: {}:{}", self.relay_server, self.relay_port);
     }
 
+    /// 获取 relay 服务器配置（用于在锁外进行异步连接，避免跨 await 持有锁）
+    pub fn get_relay_config(&self) -> (String, u16) {
+        (self.relay_server.clone(), self.relay_port)
+    }
+
+    /// 添加已建立的会话
+    pub fn add_session(&self, session: ConnectionSession) {
+        let mut sessions = self.active_sessions.lock().unwrap();
+        sessions.push(session);
+    }
+
     pub async fn create_connection(&self, peer_id: String) -> ResultType<bool> {
         let mut session = ConnectionSession::new(peer_id.clone());
-        
+
         match session.connect(&self.relay_server, self.relay_port).await {
             Ok(success) => {
                 if success {

@@ -1,5 +1,5 @@
 use napi::{bindgen_prelude::*, Error, Status};
-use std::mem;
+use hbb_common::log;
 
 // 模拟鸿蒙屏幕捕获API
 // 实际开发中需要调用鸿蒙SDK的ScreenCaptureManager
@@ -51,11 +51,11 @@ impl HarmonyScreenCapturer {
 }
 
 // 真实鸿蒙屏幕捕获API的绑定（占位）
-mod harmony_screen_capture_sys {
-    use super::*;
-    
-    #[link(name = "screen_capture", kind = "framework")]
-    extern "C" {
-        // 这里声明鸿蒙SDK的C函数
-    }
-}
+// 实际开发中应在此处声明鸿蒙SDK的C函数，例如：
+// #[link(name = "screen_capture", kind = "framework")]
+// extern "C" {
+//     fn ScreenCapture_Request(...) -> i32;
+//     fn ScreenCapture_Start(...) -> i32;
+//     fn ScreenCapture_GetFrame(...) -> i32;
+// }
+// 当前为占位实现，不需要链接外部库。

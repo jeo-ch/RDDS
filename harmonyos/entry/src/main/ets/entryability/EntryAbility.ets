@@ -2,7 +2,6 @@ import UIAbility from '@ohos.app.ability.UIAbility';
 import window from '@ohos.window';
 import { logger } from '@ohos.hilog';
 import abilityAccessCtrl, { Permissions } from '@ohos.abilityAccessCtrl';
-import bundleManager from '@ohos.bundle.bundleManager';
 
 const TAG: string = '[RustDesk]';
 const PERMISSION_REQUEST_CODE = 1001;
@@ -71,21 +70,22 @@ export default class EntryAbility extends UIAbility {
 
   async onWindowStageCreate(windowStage: window.WindowStage): Promise<void> {
     logger.info(TAG, 'Ability onWindowStageCreate');
-    
-    // 禁用截屏（除非在远程桌面模式）
+
+    // 设置系统栏可见性（保持状态栏和导航栏可见）
     const windowClass = windowStage.getMainWindowSync();
     if (windowClass) {
       windowClass.setWindowSystemBarProperties({
-        isAppearance: true
+        isStatusBarVisible: true,
+        isNavigationBarVisible: true
       });
     }
-    
+
     windowStage.loadContent('pages/Index', (err, data) => {
       if (err.code) {
-        logger.error(TAG, 'Failed to load the content. Cause: ' + JSON.stringify(err) ?? '');
+        logger.error(TAG, 'Failed to load the content. Cause: ' + (JSON.stringify(err) || ''));
         return;
       }
-      logger.info(TAG, 'Succeeded in loading the content. Data: ' + JSON.stringify(data) ?? '');
+      logger.info(TAG, 'Succeeded in loading the content. Data: ' + (JSON.stringify(data) || ''));
     });
   }
 

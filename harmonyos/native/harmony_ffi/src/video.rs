@@ -179,7 +179,7 @@ impl HarmonyVideoDecoder {
         Ok(())
     }
 
-    pub fn decode_frame(&self, encoded_data: &[u8]) -> Result<VideoFrame> {
+    pub fn decode_frame(&self, _encoded_data: &[u8]) -> Result<VideoFrame> {
         if !self.is_initialized {
             return Err(Error::from_reason("Decoder not initialized"));
         }

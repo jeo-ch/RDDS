@@ -186,7 +186,7 @@ struct RemoteDesktop {
       }
 
       // 控制约 30 FPS 的轮询频率
-      this.frameTimer = setTimeout(tick, 33) as unknown as number
+      this.frameTimer = setTimeout(tick, 33) as number
     }
     tick()
   }
