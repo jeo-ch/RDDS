@@ -1895,9 +1895,14 @@ jobs:
           sudo apt-get install -y libarchive-tools libfuse2
           # set-up appimage-builder
           # https://github.com/AppImage/AppImageKit/issues/1395
-          sudo pip3 install --upgrade pip setuptools wheel
+          # Upgrade setuptools to >=77 (provides ignore_egg_info_in_manifest)
+          # so that setuptools_scm 10.x (auto-fetched by appimage-builder's
+          # setup.py into .eggs) no longer crashes egg_info generation.
+          sudo pip3 install --upgrade "setuptools>=77" pip wheel
           sudo pip3 install "setuptools_scm<9"
-          sudo pip3 install git+https://github.com/rustdesk-org/appimage-builder.git
+          # --no-build-isolation: use the system setuptools_scm<9 instead of
+          # letting setup.py auto-fetch setuptools_scm 10.x into .eggs.
+          sudo pip3 install --no-build-isolation git+https://github.com/rustdesk-org/appimage-builder.git
           # run appimage-builder
           pushd appimage
           sudo appimage-builder --skip-tests --recipe ./AppImageBuilder-${{ matrix.job.arch }}.yml
