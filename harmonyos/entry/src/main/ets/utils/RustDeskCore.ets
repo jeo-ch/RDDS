@@ -21,6 +21,22 @@ export interface RemoteSession {
 }
 
 /**
+ * RustDesk 服务器配置（对应主项目 options）。
+ * 写入后会自动持久化到 RustDesk2.toml，
+ * RendezvousMediator 启动连接时会自动读取应用。
+ */
+export interface ServerConfig {
+  /** 自定义 rendezvous server，host[:port]，端口缺省 21116 */
+  rendezvousServer: string;
+  /** API 服务器 URL，如 https://api.example.com */
+  apiServer: string;
+  /** 自定义 relay server，host[:port]，端口缺省 21117 */
+  relayServer: string;
+  /** rendezvous server 的公钥（base64），用于 secure_tcp 握手 */
+  key: string;
+}
+
+/**
  * RustDesk Core Interface
  */
 export interface IRustDeskCore {
@@ -30,7 +46,16 @@ export interface IRustDeskCore {
   disconnect(): Promise<void>;
   disconnectPeer(peerId: string): Promise<void>;
   getConnectionState(peerId: string): Promise<string>;
-  setServerConfig(address: string, port: number, enableDirect: boolean): Promise<void>;
+  /** 一次性写入四项服务器配置 */
+  setServerConfig(config: ServerConfig): Promise<void>;
+  /** 通用 option 写入（verification-method / approve-mode / temporary-password-length 等） */
+  setOption(key: string, value: string): Promise<void>;
+  /** 通用 option 读取 */
+  getOption(key: string): Promise<string>;
+  /** 设置固定密码，返回 false 表示被锁定或新旧值相同 */
+  setPermanentPassword(password: string): Promise<boolean>;
+  /** 设置 Socks5 代理，proxy 为空表示清除 */
+  setSocks(proxy: string, username: string, password: string): Promise<void>;
   injectMouseMove(x: number, y: number): Promise<void>;
   injectMouseClick(x: number, y: number, button: number, down: boolean): Promise<void>;
   injectKey(keyCode: number, down: boolean): Promise<void>;
@@ -185,16 +210,72 @@ export class RustDeskCore implements IRustDeskCore {
     }
   }
 
-  async setServerConfig(address: string, port: number, enableDirect: boolean): Promise<void> {
+  async setServerConfig(config: ServerConfig): Promise<void> {
     try {
       if (this.nativeModule && this.nativeModule.setServerConfig) {
-        await this.nativeModule.setServerConfig(address, port, enableDirect);
+        await this.nativeModule.setServerConfig(
+          config.rendezvousServer,
+          config.apiServer,
+          config.relayServer,
+          config.key
+        );
       } else {
         // Mock 保存配置
-        logger.info(TAG, `Server config updated: ${address}:${port}, direct=${enableDirect}`);
+        logger.info(TAG, `Server config updated: rendezvous=${config.rendezvousServer}, api=${config.apiServer}, relay=${config.relayServer}, key_len=${config.key.length}`);
       }
     } catch (e) {
       logger.error(TAG, 'Failed to set server config: ' + JSON.stringify(e));
+    }
+  }
+
+  async setOption(key: string, value: string): Promise<void> {
+    try {
+      if (this.nativeModule && this.nativeModule.setOption) {
+        await this.nativeModule.setOption(key, value);
+      } else {
+        logger.info(TAG, `setOption mock: ${key}=${value}`);
+      }
+    } catch (e) {
+      logger.error(TAG, `Failed to set option ${key}: ` + JSON.stringify(e));
+    }
+  }
+
+  async getOption(key: string): Promise<string> {
+    try {
+      if (this.nativeModule && this.nativeModule.getOption) {
+        return await this.nativeModule.getOption(key);
+      } else {
+        return '';
+      }
+    } catch (e) {
+      logger.error(TAG, `Failed to get option ${key}: ` + JSON.stringify(e));
+      return '';
+    }
+  }
+
+  async setPermanentPassword(password: string): Promise<boolean> {
+    try {
+      if (this.nativeModule && this.nativeModule.setPermanentPassword) {
+        return await this.nativeModule.setPermanentPassword(password);
+      } else {
+        logger.info(TAG, `setPermanentPassword mock: password_len=${password.length}`);
+        return true;
+      }
+    } catch (e) {
+      logger.error(TAG, 'Failed to set permanent password: ' + JSON.stringify(e));
+      return false;
+    }
+  }
+
+  async setSocks(proxy: string, username: string, password: string): Promise<void> {
+    try {
+      if (this.nativeModule && this.nativeModule.setSocks) {
+        await this.nativeModule.setSocks(proxy, username, password);
+      } else {
+        logger.info(TAG, `setSocks mock: proxy_set=${proxy.length > 0}`);
+      }
+    } catch (e) {
+      logger.error(TAG, 'Failed to set socks: ' + JSON.stringify(e));
     }
   }
 

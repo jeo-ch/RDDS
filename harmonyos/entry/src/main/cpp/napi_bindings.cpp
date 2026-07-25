@@ -264,6 +264,180 @@ static napi_value get_version(napi_env env, napi_callback_info info) {
 }
 
 /**
+ * Set server config (rendezvous / api / relay / key)
+ *
+ * TODO: 当 Rust 静态库链接后，应替换为对 rust_core_set_server_config 的真实调用。
+ * 当前为 mock：仅打印日志，不写入 RustDesk2.toml。
+ */
+static napi_value set_server_config(napi_env env, napi_callback_info info) {
+  size_t argc = 4;
+  napi_value argv[4] = {nullptr, nullptr, nullptr, nullptr};
+  napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+
+  if (argc < 4) {
+    return create_error(env, "Missing arguments (rendezvous, api, relay, key)");
+  }
+
+  char* rendezvous = get_string_utf8(env, argv[0], nullptr);
+  char* api = get_string_utf8(env, argv[1], nullptr);
+  char* relay = get_string_utf8(env, argv[2], nullptr);
+  char* key = get_string_utf8(env, argv[3], nullptr);
+
+  if (!rendezvous || !api || !relay || !key) {
+    if (rendezvous) free(rendezvous);
+    if (api) free(api);
+    if (relay) free(relay);
+    if (key) free(key);
+    return create_error(env, "Failed to parse server config arguments");
+  }
+
+  NAPI_LOGI("set_server_config: rendezvous=%{public}s api=%{public}s relay=%{public}s key_len=%{public}zu",
+            rendezvous, api, relay, strlen(key));
+  // TODO: rust_core_set_server_config(rendezvous, api, relay, key);
+
+  free(rendezvous);
+  free(api);
+  free(relay);
+  free(key);
+
+  napi_value result;
+  napi_get_undefined(env, &result);
+  return result;
+}
+
+/**
+ * Generic set_option(key, value)
+ *
+ * TODO: rust_core_set_option(key, value)
+ */
+static napi_value set_option(napi_env env, napi_callback_info info) {
+  size_t argc = 2;
+  napi_value argv[2] = {nullptr, nullptr};
+  napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+
+  if (argc < 2) {
+    return create_error(env, "Missing key/value arguments");
+  }
+
+  char* key = get_string_utf8(env, argv[0], nullptr);
+  char* value = get_string_utf8(env, argv[1], nullptr);
+
+  if (!key || !value) {
+    if (key) free(key);
+    if (value) free(value);
+    return create_error(env, "Failed to parse key/value");
+  }
+
+  NAPI_LOGI("set_option: key=%{public}s value_len=%{public}zu", key, strlen(value));
+  // TODO: rust_core_set_option(key, value);
+
+  free(key);
+  free(value);
+
+  napi_value result;
+  napi_get_undefined(env, &result);
+  return result;
+}
+
+/**
+ * Generic get_option(key) -> string
+ *
+ * TODO: rust_core_get_option(key) 返回真实值
+ */
+static napi_value get_option(napi_env env, napi_callback_info info) {
+  size_t argc = 1;
+  napi_value argv[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+
+  if (argc < 1) {
+    return create_error(env, "Missing key argument");
+  }
+
+  char* key = get_string_utf8(env, argv[0], nullptr);
+  if (!key) {
+    return create_error(env, "Failed to parse key");
+  }
+
+  NAPI_LOGI("get_option: key=%{public}s", key);
+  // TODO: const char* value = rust_core_get_option(key);
+  const char* mock_value = "";
+
+  free(key);
+
+  napi_value result;
+  napi_create_string_utf8(env, mock_value, NAPI_AUTO_LENGTH, &result);
+  return result;
+}
+
+/**
+ * Set permanent password
+ *
+ * TODO: rust_core_set_permanent_password(password) 返回 bool
+ */
+static napi_value set_permanent_password(napi_env env, napi_callback_info info) {
+  size_t argc = 1;
+  napi_value argv[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+
+  if (argc < 1) {
+    return create_error(env, "Missing password argument");
+  }
+
+  char* password = get_string_utf8(env, argv[0], nullptr);
+  if (!password) {
+    return create_error(env, "Failed to parse password");
+  }
+
+  NAPI_LOGI("set_permanent_password: password_len=%{public}zu", strlen(password));
+  // TODO: bool ok = rust_core_set_permanent_password(password);
+  bool mock_result = true;
+
+  free(password);
+
+  napi_value result;
+  napi_get_boolean(env, mock_result, &result);
+  return result;
+}
+
+/**
+ * Set socks5 proxy (proxy, username, password)
+ *
+ * TODO: rust_core_set_socks(proxy, username, password)
+ */
+static napi_value set_socks(napi_env env, napi_callback_info info) {
+  size_t argc = 3;
+  napi_value argv[3] = {nullptr, nullptr, nullptr};
+  napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+
+  if (argc < 3) {
+    return create_error(env, "Missing proxy/username/password arguments");
+  }
+
+  char* proxy = get_string_utf8(env, argv[0], nullptr);
+  char* username = get_string_utf8(env, argv[1], nullptr);
+  char* password = get_string_utf8(env, argv[2], nullptr);
+
+  if (!proxy || !username || !password) {
+    if (proxy) free(proxy);
+    if (username) free(username);
+    if (password) free(password);
+    return create_error(env, "Failed to parse socks arguments");
+  }
+
+  NAPI_LOGI("set_socks: proxy_set=%{public}d username_len=%{public}zu",
+            strlen(proxy) > 0 ? 1 : 0, strlen(username));
+  // TODO: rust_core_set_socks(proxy, username, password);
+
+  free(proxy);
+  free(username);
+  free(password);
+
+  napi_value result;
+  napi_get_undefined(env, &result);
+  return result;
+}
+
+/**
  * Module registration
  */
 static napi_value register_module(napi_env env, napi_value exports) {
@@ -272,6 +446,11 @@ static napi_value register_module(napi_env env, napi_value exports) {
     {"getLocalId", nullptr, get_local_id, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"connectToPeer", nullptr, connect_to_peer, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"disconnect", nullptr, disconnect, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"setServerConfig", nullptr, set_server_config, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"setOption", nullptr, set_option, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"getOption", nullptr, get_option, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"setPermanentPassword", nullptr, set_permanent_password, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"setSocks", nullptr, set_socks, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"injectMouseMove", nullptr, inject_mouse_move, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"injectMouseClick", nullptr, inject_mouse_click, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"injectKey", nullptr, inject_key, nullptr, nullptr, nullptr, napi_default, nullptr},

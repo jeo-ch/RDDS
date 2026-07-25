@@ -39,6 +39,21 @@ pub fn initialize(app_dir: String) -> Result<()> {
 
     log::info!("Initializing RustDesk for HarmonyOS, app_dir: {}", app_dir);
 
+    // 鸿蒙按 android target 编译，Config::path() 走 APP_DIR 分支，
+    // init_log 走 APP_HOME_DIR 分支，两者都必须先设置，否则
+    // RustDesk.toml / RustDesk2.toml 会写到空路径，日志也会被跳过。
+    // app_dir 形如 /data/storage/el2/base/haps/entry/files
+    *config::APP_DIR.write().unwrap() = app_dir.clone();
+    // home dir 取上一层（与 flutter_ffi.rs 中 _home 的语义一致）
+    let app_home_dir = std::path::Path::new(&app_dir)
+        .parent()
+        .map(|p| p.to_string_lossy().to_string())
+        .unwrap_or_else(|| app_dir.clone());
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    {
+        *config::APP_HOME_DIR.write().unwrap() = app_home_dir;
+    }
+
     // hbb_common::init_log 返回 Option<LoggerHandle>，丢弃返回值即可
     let _ = hbb_common::init_log(false, "harmony");
 
@@ -126,19 +141,88 @@ pub fn get_connection_state(peer_id: String) -> Result<String> {
 }
 
 #[napi]
-pub fn set_server_config(address: String, port: i32, enable_direct: bool) -> Result<()> {
+pub fn set_server_config(
+    rendezvous_server: String,
+    api_server: String,
+    relay_server: String,
+    key: String,
+) -> Result<()> {
+    // 写入主项目正式的 option 字段，会自动持久化到 RustDesk2.toml，
+    // 后续 RendezvousMediator 启动连接时会自动读取应用。
+    config::Config::set_option(
+        config::keys::OPTION_CUSTOM_RENDEZVOUS_SERVER.to_string(),
+        rendezvous_server.clone(),
+    );
+    config::Config::set_option(
+        config::keys::OPTION_API_SERVER.to_string(),
+        api_server.clone(),
+    );
+    config::Config::set_option(
+        config::keys::OPTION_RELAY_SERVER.to_string(),
+        relay_server.clone(),
+    );
+    config::Config::set_option(config::keys::OPTION_KEY.to_string(), key.clone());
+
+    // 同步更新内存中的 ConnectionManager 的 relay 配置（用于 mock 连接路径）
     let mut manager = CONNECTION_MANAGER.lock().unwrap();
     if let Some(manager) = manager.as_mut() {
-        // address 在此被 move，先 clone 一份用于后续日志
-        manager.set_relay_server(address.clone(), port as u16);
+        // 解析 host:port，没有 port 时使用默认 21117
+        let (host, p) = if let Some((h, p)) = relay_server.rsplit_once(':') {
+            (h.to_string(), p.parse::<u16>().unwrap_or(21117))
+        } else {
+            (relay_server.clone(), 21117)
+        };
+        manager.set_relay_server(host, p);
     }
-    // 注意：hbb_common::config::Config 结构体没有 relay_server / relay_port / enable_direct 字段，
-    // 服务器配置应通过 set_option 写入 options map。
-    // 这里仅记录到日志，避免编译失败。
+
     log::info!(
-        "Server config updated: address={}, port={}, enable_direct={}",
-        address, port, enable_direct
+        "Server config updated: rendezvous={}, api={}, relay={}, key_len={}",
+        rendezvous_server,
+        api_server,
+        relay_server,
+        key.len()
     );
+    Ok(())
+}
+
+/// 通用 option 写入接口（覆盖 verification-method / approve-mode / temporary-password-length 等）
+#[napi]
+pub fn set_option(key: String, value: String) -> Result<()> {
+    log::info!("set_option: key={}, value_len={}", key, value.len());
+    config::Config::set_option(key, value);
+    Ok(())
+}
+
+/// 通用 option 读取接口
+#[napi]
+pub fn get_option(key: String) -> Result<String> {
+    Ok(config::Config::get_option(&key))
+}
+
+/// 设置固定密码（永久密码）
+/// 内部用 SHA256(password‖salt) 哈希后存入 RustDesk.toml，并清空 trusted_devices。
+/// 返回 false 表示被 disable-change-permanent-password 锁定或新旧值相同。
+#[napi]
+pub fn set_permanent_password(password: String) -> Result<bool> {
+    log::info!("set_permanent_password: password_len={}", password.len());
+    Ok(config::Config::set_permanent_password(&password))
+}
+
+/// 设置 Socks5 代理
+/// 传入空 proxy 表示清除代理
+#[napi]
+pub fn set_socks(proxy: String, username: String, password: String) -> Result<()> {
+    let socks = if proxy.is_empty() {
+        None
+    } else {
+        Some(config::Socks5Server {
+            proxy,
+            username,
+            password,
+        })
+    };
+    log::info!("set_socks: proxy_set={}", socks.is_some());
+    config::Config::set_socks(socks);
     Ok(())
 }
 
