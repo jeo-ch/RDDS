@@ -1,0 +1,47 @@
+#!/bin/sh
+
+# ----------------------------------------------------------------------------
+#  Hvigor startup script for POSIX environment
+# ----------------------------------------------------------------------------
+
+# Resolve script location
+PRG="$0"
+while [ -h "$PRG" ]; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+        PRG="$link"
+    else
+        PRG=`dirname "$PRG"`"/$link"
+    fi
+done
+SAVED="`pwd`"
+cd "`dirname \"$PRG\"`/" >/dev/null
+APP_HOME="`pwd -P`"
+cd "$SAVED" >/dev/null
+
+# Determine NODE_HOME (prefer user-provided NODE_HOME)
+if [ -z "$NODE_HOME" ]; then
+    if command -v node >/dev/null 2>&1; then
+        NODE_HOME=$(dirname $(dirname $(command -v node)))
+    fi
+fi
+if [ -z "$NODE_HOME" ]; then
+    echo "Error: NODE_HOME is not set and 'node' could not be found in your PATH." >&2
+    exit 1
+fi
+NODE_EXE="$NODE_HOME/bin/node"
+if [ ! -x "$NODE_EXE" ]; then
+    echo "Error: Cannot find executable node at $NODE_EXE" >&2
+    exit 1
+fi
+
+# Hvigor wrapper script
+HVIGOR_WRAPPER_SCRIPT="$APP_HOME/hvigor/hvigor-wrapper.js"
+if [ ! -f "$HVIGOR_WRAPPER_SCRIPT" ]; then
+    echo "Error: Hvigor wrapper script not found at $HVIGOR_WRAPPER_SCRIPT" >&2
+    exit 1
+fi
+
+# Use NODE_OPTIONS if provided
+exec "$NODE_EXE" --max-old-space-size=8192 "$HVIGOR_WRAPPER_SCRIPT" "$@"

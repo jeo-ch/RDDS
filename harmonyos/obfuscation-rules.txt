@@ -1,0 +1,5 @@
+# HarmonyOS ArkTS obfuscation rules
+# Keep entry ability classes
+-keep class EntryAbility { *; }
+# Keep RustDesk models
+-keep class com.rustdesk.** { *; }
