@@ -44,13 +44,15 @@ pub fn initialize(app_dir: String) -> Result<()> {
     // RustDesk.toml / RustDesk2.toml 会写到空路径，日志也会被跳过。
     // app_dir 形如 /data/storage/el2/base/haps/entry/files
     *config::APP_DIR.write().unwrap() = app_dir.clone();
-    // home dir 取上一层（与 flutter_ffi.rs 中 _home 的语义一致）
-    let app_home_dir = std::path::Path::new(&app_dir)
-        .parent()
-        .map(|p| p.to_string_lossy().to_string())
-        .unwrap_or_else(|| app_dir.clone());
+    // home dir 取上一层（与 flutter_ffi.rs 中 _home 的语义一致）。
+    // 仅 android/ios target 需要 APP_HOME_DIR，把计算放进 cfg 块
+    // 避免在其他 target 下产生 unused variable 警告。
     #[cfg(any(target_os = "android", target_os = "ios"))]
     {
+        let app_home_dir = std::path::Path::new(&app_dir)
+            .parent()
+            .map(|p| p.to_string_lossy().to_string())
+            .unwrap_or_else(|| app_dir.clone());
         *config::APP_HOME_DIR.write().unwrap() = app_home_dir;
     }
 

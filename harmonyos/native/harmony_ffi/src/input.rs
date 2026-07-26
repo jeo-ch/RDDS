@@ -74,6 +74,9 @@ impl HarmonyInputInjector {
 }
 
 // 按键码映射
+// 这些常量预留给 inject_key 真实实现（对接鸿蒙 InputManager）时使用，
+// 当前 mock 实现未引用，统一 allow(dead_code) 避免噪音。
+#[allow(dead_code)]
 pub mod key_codes {
     pub const KEYCODE_0: i32 = 7;
     pub const KEYCODE_1: i32 = 8;
