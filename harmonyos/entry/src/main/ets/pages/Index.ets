@@ -1,5 +1,6 @@
 import router from '@ohos.router'
 import promptAction from '@ohos.promptAction'
+import common from '@ohos.app.ability.common'
 import { rustDeskCore } from '../utils/RustDeskCore'
 import { logger } from '@ohos.hilog'
 
@@ -16,11 +17,15 @@ struct Index {
 
   async aboutToAppear() {
     logger.info(TAG, 'Index page appearing')
-    
-    // 初始化核心
-    const appFilesDir = '/data/storage/el2/base/haps/entry/files'
+
+    // 动态获取应用沙箱 files 目录，避免硬编码路径在不同设备上失效
+    // 鸿蒙的 Context.filesDir 会返回 /data/storage/el2/base/haps/entry/files
+    const context = getContext(this) as common.UIAbilityContext
+    const appFilesDir = context.filesDir
+
+    logger.info(TAG, `Initializing with appFilesDir: ${appFilesDir}`)
     const initSuccess = await rustDeskCore.initialize(appFilesDir)
-    
+
     if (initSuccess) {
       await this.loadLocalId()
     }

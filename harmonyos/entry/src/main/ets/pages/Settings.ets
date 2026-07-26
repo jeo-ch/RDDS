@@ -24,6 +24,9 @@ struct Settings {
   @State approveMode: string = 'password-click';
   @State temporaryPasswordLength: string = '6';
   @State permanentPassword: string = '';
+  @State hasPermanentPwd: boolean = false;   // 当前是否已设置固定密码
+  @State verifyPassword: string = '';         // 验证用密码输入
+  @State verifyResult: string = '';           // 验证结果文案
 
   // ===== Socks5 代理 =====
   @State socksProxy: string = '';
@@ -210,10 +213,38 @@ struct Settings {
           .fontSize(14)
           .fontColor('#666666')
           .width('100%')
+        Row() {
+          Text(this.hasPermanentPwd ? '当前状态：已设置' : '当前状态：未设置')
+            .fontSize(13)
+            .fontColor(this.hasPermanentPwd ? '#00AA00' : '#999999')
+          Blank()
+          Button('验证')
+            .fontSize(12)
+            .height(28)
+            .backgroundColor('#007DFF')
+            .fontColor('#FFFFFF')
+            .enabled(this.verifyPassword.length > 0)
+            .onClick(() => { this.verifyCurrentPassword(); })
+        }
+        .width('100%')
+
         TextInput({ text: this.permanentPassword, placeholder: '设置固定密码（留空则清除）' })
           .type(InputType.Password)
           .onChange((value: string) => { this.permanentPassword = value; })
           .width('100%')
+
+        TextInput({ text: this.verifyPassword, placeholder: '输入密码验证是否匹配' })
+          .type(InputType.Password)
+          .onChange((value: string) => { this.verifyPassword = value; })
+          .width('100%')
+
+        if (this.verifyResult) {
+          Text(this.verifyResult)
+            .fontSize(12)
+            .fontColor(this.verifyResult.includes('成功') ? '#00AA00' : '#FF4444')
+            .width('100%')
+            .margin({ top: 4 })
+        }
       }
       .width('100%')
     }
@@ -354,6 +385,8 @@ struct Settings {
       const tLen = await rustDeskCore.getOption(OPT_TEMPORARY_PASSWORD_LENGTH);
       if (tLen) this.temporaryPasswordLength = tLen;
 
+      this.hasPermanentPwd = await rustDeskCore.hasPermanentPassword();
+
       logger.info(TAG, 'Settings loaded');
     } catch (e) {
       logger.error(TAG, 'Failed to load settings: ' + JSON.stringify(e));
@@ -385,6 +418,8 @@ struct Settings {
           promptAction.showToast({ message: '固定密码设置被拒绝', duration: 2000 });
         } else {
           this.permanentPassword = '';
+          this.hasPermanentPwd = await rustDeskCore.hasPermanentPassword();
+          promptAction.showToast({ message: '固定密码已设置', duration: 2000 });
         }
       }
 
@@ -402,6 +437,28 @@ struct Settings {
       promptAction.showToast({ message: '保存失败', duration: 2000 });
     } finally {
       this.saving = false;
+    }
+  }
+
+  // 验证用户输入的密码是否与当前固定密码匹配
+  // 避免"设置成功但实际无法登录"的问题（如密码格式错误）
+  private async verifyCurrentPassword() {
+    if (this.verifyPassword.length === 0) {
+      this.verifyResult = '请输入要验证的密码';
+      return;
+    }
+    try {
+      const ok = await rustDeskCore.matchesPassword(this.verifyPassword);
+      if (ok) {
+        this.verifyResult = '验证成功：密码匹配 ✅';
+        this.hasPermanentPwd = true;
+      } else {
+        this.verifyResult = '验证失败：密码不匹配 ❌';
+      }
+      logger.info(TAG, `Password verify result: ${ok}`);
+    } catch (e) {
+      this.verifyResult = '验证出错: ' + JSON.stringify(e);
+      logger.error(TAG, 'Password verify failed: ' + JSON.stringify(e));
     }
   }
 }

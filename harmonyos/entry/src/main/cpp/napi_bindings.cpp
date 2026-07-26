@@ -18,6 +18,23 @@
 #define LOG_TAG "RustDeskNAPI"
 #define NAPI_LOGI(fmt, ...) OH_LOG_PRINT(LOG_INFO, LOG_DOMAIN, LOG_TAG, fmt, ##__VA_ARGS__)
 #define NAPI_LOGE(fmt, ...) OH_LOG_PRINT(LOG_ERROR, LOG_DOMAIN, LOG_TAG, fmt, ##__VA_ARGS__)
+#define NAPI_LOGW(fmt, ...) OH_LOG_PRINT(LOG_WARN, LOG_DOMAIN, LOG_TAG, fmt, ##__VA_ARGS__)
+
+// =============================================================================
+// Rust C ABI 声明（弱符号）
+//
+// 当 Rust 静态库 librustdesk_core.a 被链接进来时（见 CMakeLists.txt），
+// 这些符号会被强引用解析到 Rust 真实实现；
+// 当 Rust 库不存在时，弱符号为 nullptr，C++ 侧走 mock 分支并打印告警，
+// 避免「链接失败」或「调用真实函数却返回 mock 值」造成的困惑。
+//
+// 与 lib.rs 中 #[no_mangle] extern "C" 函数签名必须严格一致。
+// =============================================================================
+extern "C" {
+__attribute__((weak)) bool rust_core_has_permanent_password();
+__attribute__((weak)) bool rust_core_matches_permanent_password(const uint8_t* password, size_t password_len);
+__attribute__((weak)) bool rust_core_set_permanent_password(const uint8_t* password, size_t password_len);
+}
 
 namespace rustdesk_napi {
 
@@ -372,7 +389,7 @@ static napi_value get_option(napi_env env, napi_callback_info info) {
 /**
  * Set permanent password
  *
- * TODO: rust_core_set_permanent_password(password) 返回 bool
+ * 当 Rust 静态库链接时调用真实实现，否则打印告警并返回 false（避免误以为设置成功）。
  */
 static napi_value set_permanent_password(napi_env env, napi_callback_info info) {
   size_t argc = 1;
@@ -383,19 +400,89 @@ static napi_value set_permanent_password(napi_env env, napi_callback_info info) 
     return create_error(env, "Missing password argument");
   }
 
-  char* password = get_string_utf8(env, argv[0], nullptr);
+  // 取长度，避免依赖 null 终止（密码内可能含 \0 被截断）
+  size_t pwd_len = 0;
+  char* password = get_string_utf8(env, argv[0], &pwd_len);
   if (!password) {
     return create_error(env, "Failed to parse password");
   }
 
-  NAPI_LOGI("set_permanent_password: password_len=%{public}zu", strlen(password));
-  // TODO: bool ok = rust_core_set_permanent_password(password);
-  bool mock_result = true;
+  NAPI_LOGI("set_permanent_password: password_len=%{public}zu", pwd_len);
+
+  bool result_val = false;
+  if (rust_core_set_permanent_password) {
+    // 真实路径：调用 Rust C ABI
+    result_val = rust_core_set_permanent_password(
+        reinterpret_cast<const uint8_t*>(password), pwd_len);
+  } else {
+    // mock 路径：Rust 库未链接，明确告警
+    NAPI_LOGW("rust_core_set_permanent_password not linked (Rust 库缺失)，密码未真正写入");
+    result_val = false;
+  }
 
   free(password);
 
   napi_value result;
-  napi_get_boolean(env, mock_result, &result);
+  napi_get_boolean(env, result_val, &result);
+  return result;
+}
+
+/**
+ * Has permanent password (查询是否已设置)
+ *
+ * 当 Rust 静态库链接时调用真实实现，否则返回 false（与"未设置"状态一致）。
+ */
+static napi_value has_permanent_password(napi_env env, napi_callback_info info) {
+  NAPI_LOGI("has_permanent_password called");
+
+  bool result_val = false;
+  if (rust_core_has_permanent_password) {
+    result_val = rust_core_has_permanent_password();
+  } else {
+    NAPI_LOGW("rust_core_has_permanent_password not linked (Rust 库缺失)，按未设置处理");
+    result_val = false;
+  }
+
+  napi_value result;
+  napi_get_boolean(env, result_val, &result);
+  return result;
+}
+
+/**
+ * Matches permanent password (验证明文密码是否匹配)
+ *
+ * 当 Rust 静态库链接时调用真实实现，否则返回 false（避免误判通过）。
+ */
+static napi_value matches_password(napi_env env, napi_callback_info info) {
+  size_t argc = 1;
+  napi_value argv[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+
+  if (argc < 1) {
+    return create_error(env, "Missing password argument");
+  }
+
+  size_t pwd_len = 0;
+  char* password = get_string_utf8(env, argv[0], &pwd_len);
+  if (!password) {
+    return create_error(env, "Failed to parse password");
+  }
+
+  NAPI_LOGI("matches_password: password_len=%{public}zu", pwd_len);
+
+  bool result_val = false;
+  if (rust_core_matches_permanent_password) {
+    result_val = rust_core_matches_permanent_password(
+        reinterpret_cast<const uint8_t*>(password), pwd_len);
+  } else {
+    NAPI_LOGW("rust_core_matches_permanent_password not linked (Rust 库缺失)，按不匹配处理");
+    result_val = false;
+  }
+
+  free(password);
+
+  napi_value result;
+  napi_get_boolean(env, result_val, &result);
   return result;
 }
 
@@ -450,6 +537,8 @@ static napi_value register_module(napi_env env, napi_value exports) {
     {"setOption", nullptr, set_option, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"getOption", nullptr, get_option, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"setPermanentPassword", nullptr, set_permanent_password, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"hasPermanentPassword", nullptr, has_permanent_password, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"matchesPassword", nullptr, matches_password, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"setSocks", nullptr, set_socks, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"injectMouseMove", nullptr, inject_mouse_move, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"injectMouseClick", nullptr, inject_mouse_click, nullptr, nullptr, nullptr, napi_default, nullptr},

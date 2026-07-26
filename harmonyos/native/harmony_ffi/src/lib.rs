@@ -208,6 +208,19 @@ pub fn set_permanent_password(password: String) -> Result<bool> {
     Ok(config::Config::set_permanent_password(&password))
 }
 
+/// 查询当前是否已设置固定密码（含 HARD_SETTINGS 预设）
+#[napi]
+pub fn has_permanent_password() -> Result<bool> {
+    Ok(config::Config::has_permanent_password())
+}
+
+/// 验证明文密码是否与当前固定密码匹配
+/// 用于 UI 端"输入密码后立即验证"，避免格式错误导致登录失败
+#[napi]
+pub fn matches_permanent_password(password: String) -> Result<bool> {
+    Ok(config::Config::matches_permanent_password_plain(&password))
+}
+
 /// 设置 Socks5 代理
 /// 传入空 proxy 表示清除代理
 #[napi]
@@ -272,4 +285,80 @@ pub fn get_version() -> Result<String> {
 #[napi]
 pub fn get_build_info() -> Result<String> {
     Ok(format!("Build on {} for HarmonyOS", std::env::consts::OS))
+}
+
+// =============================================================================
+// C ABI 导出（供 napi_bindings.cpp 通过 extern "C" 直接调用）
+//
+// 设计意图：
+//   - napi_bindings.cpp 是鸿蒙 NAPI 模块的唯一注册入口（nm_modname="rustdesk_napi"），
+//     ArkTS 端 `requireNapi('rustdesk_napi')` 加载的就是这个 C++ 模块。
+//   - Rust 静态库 librustdesk_core.a 链接进来后，必须通过 C ABI 暴露函数
+//     才能被 C++ 调用（#[napi] 宏生成的符号依赖 NAPI 运行时，无法直接 extern）。
+//   - 因此这里为「关键函数」额外提供 #[no_mangle] extern "C" 包装，
+//     专门给 napi_bindings.cpp 使用；#[napi] 版本保留给「直接用 Rust napi 模块」的路径。
+//
+// 调用约定：
+//   - 输入字符串以 (ptr, len) 形式传递，不依赖 C null 终止（避免密码内含 \0 时截断）。
+//   - 输入字符串所有权不转移（C 侧仍负责释放原 buffer）。
+//   - 出参仅返回简单 bool，错误用 false 表达（与 napi_bindings.cpp 现有 mock 行为兼容）。
+// =============================================================================
+
+/// 查询当前是否已设置固定密码（含 HARD_SETTINGS 预设）
+#[no_mangle]
+pub extern "C" fn rust_core_has_permanent_password() -> bool {
+    config::Config::has_permanent_password()
+}
+
+/// 验证明文密码是否与当前固定密码匹配
+/// 输入：UTF-8 字节切片 (ptr, len)，空指针或零长度返回 false
+#[no_mangle]
+pub extern "C" fn rust_core_matches_permanent_password(
+    password: *const u8,
+    password_len: usize,
+) -> bool {
+    if password.is_null() || password_len == 0 {
+        return false;
+    }
+    // SAFETY: 调用方（napi_bindings.cpp）保证 password 指向至少 password_len 字节的有效内存
+    let bytes = unsafe { std::slice::from_raw_parts(password, password_len) };
+    let pwd = match std::str::from_utf8(bytes) {
+        Ok(s) => s,
+        Err(_) => {
+            log::warn!(
+                "rust_core_matches_permanent_password: input is not valid UTF-8 (len={})",
+                password_len
+            );
+            return false;
+        }
+    };
+    config::Config::matches_permanent_password_plain(pwd)
+}
+
+/// 设置固定密码
+/// 输入：UTF-8 字节切片 (ptr, len)
+/// - 空指针或零长度：等价于清除密码
+/// 返回 false 表示被 disable-change-permanent-password 锁定或新旧值相同
+#[no_mangle]
+pub extern "C" fn rust_core_set_permanent_password(
+    password: *const u8,
+    password_len: usize,
+) -> bool {
+    let pwd: String = if password.is_null() || password_len == 0 {
+        String::new()
+    } else {
+        // SAFETY: 同上
+        let bytes = unsafe { std::slice::from_raw_parts(password, password_len) };
+        match std::str::from_utf8(bytes) {
+            Ok(s) => s.to_owned(),
+            Err(_) => {
+                log::warn!(
+                    "rust_core_set_permanent_password: input is not valid UTF-8 (len={})",
+                    password_len
+                );
+                return false;
+            }
+        }
+    };
+    config::Config::set_permanent_password(&pwd)
 }

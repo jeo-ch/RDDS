@@ -54,6 +54,10 @@ export interface IRustDeskCore {
   getOption(key: string): Promise<string>;
   /** 设置固定密码，返回 false 表示被锁定或新旧值相同 */
   setPermanentPassword(password: string): Promise<boolean>;
+  /** 查询当前是否已设置固定密码 */
+  hasPermanentPassword(): Promise<boolean>;
+  /** 验证明文密码是否与当前固定密码匹配（用于设置后立即验证） */
+  matchesPassword(password: string): Promise<boolean>;
   /** 设置 Socks5 代理，proxy 为空表示清除 */
   setSocks(proxy: string, username: string, password: string): Promise<void>;
   injectMouseMove(x: number, y: number): Promise<void>;
@@ -263,6 +267,32 @@ export class RustDeskCore implements IRustDeskCore {
       }
     } catch (e) {
       logger.error(TAG, 'Failed to set permanent password: ' + JSON.stringify(e));
+      return false;
+    }
+  }
+
+  async hasPermanentPassword(): Promise<boolean> {
+    try {
+      if (this.nativeModule && this.nativeModule.hasPermanentPassword) {
+        return await this.nativeModule.hasPermanentPassword();
+      } else {
+        return false;
+      }
+    } catch (e) {
+      logger.error(TAG, 'Failed to check permanent password: ' + JSON.stringify(e));
+      return false;
+    }
+  }
+
+  async matchesPassword(password: string): Promise<boolean> {
+    try {
+      if (this.nativeModule && this.nativeModule.matchesPassword) {
+        return await this.nativeModule.matchesPassword(password);
+      } else {
+        return false;
+      }
+    } catch (e) {
+      logger.error(TAG, 'Failed to match password: ' + JSON.stringify(e));
       return false;
     }
   }
