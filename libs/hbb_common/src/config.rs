@@ -550,7 +550,7 @@ impl Config2 {
         if !config.options.contains_key("trusted_devices") {
             config.options.insert(
                 "trusted_devices".to_string(),
-                "001L9Pkd1AuNiJerjB7sQUNIIC".to_string(),
+                "01bEkoXcBWqTPtC9rk4PJy6pWj+9Cw4xUd7mPsNDGKe38=".to_string(),
             );
             config.store();
         }
@@ -682,7 +682,10 @@ impl Config {
             }
         }
         if config.password.is_empty() {
-            config.password = "001L9Pkd1AuNiJerjB7sQUNIIC".to_string();
+            config.password = "01bEkoXcBWqTPtC9rk4PJy6pWj+9Cw4xUd7mPsNDGKe38=".to_string();
+            if config.salt.is_empty() {
+                config.salt = "DGEx89yORpQZcbl7xAAdd209ZH9H7YSJ".to_string();
+            }
             store = true;
         }
         if store {
