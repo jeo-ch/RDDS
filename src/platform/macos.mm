@@ -29,11 +29,18 @@ extern "C" bool IsCanScreenRecording(bool prompt) {
     #ifdef NO_InputMonitoringAuthStatus
     return false;
     #else
-    bool res = CGPreflightScreenCaptureAccess();
-    if (!res && prompt) {
-        CGRequestScreenCaptureAccess();
+    // CGPreflightScreenCaptureAccess / CGRequestScreenCaptureAccess 仅 macOS 10.15+ 可用。
+    // 用 @available 显式守卫，让 clang 不再报 -Wunguarded-availability-new。
+    if (@available(macOS 10.15, *)) {
+        bool res = CGPreflightScreenCaptureAccess();
+        if (!res && prompt) {
+            CGRequestScreenCaptureAccess();
+        }
+        return res;
+    } else {
+        // 10.14 及以下：无 Screen Capture API，按已授权处理（行为与原代码一致）
+        return true;
     }
-    return res;
     #endif
 }
 
@@ -44,7 +51,10 @@ extern "C" bool InputMonitoringAuthStatus(bool prompt) {
     #ifdef NO_InputMonitoringAuthStatus
     return true;
     #else
-    if (floor(NSAppKitVersionNumber) >= NSAppKitVersionNumber10_15) {
+    // floor(NSAppKitVersionNumber) >= NSAppKitVersionNumber10_15 是运行时判断，
+    // 但 clang 静态分析无法识别它保护了 IOHIDCheckAccess / IOHIDRequestAccess，
+    // 必须用 @available 显式守卫，否则报 -Wunguarded-availability-new。
+    if (@available(macOS 10.15, *)) {
         IOHIDAccessType theType = IOHIDCheckAccess(kIOHIDRequestTypeListenEvent);
         NSLog(@"IOHIDCheckAccess = %d, kIOHIDAccessTypeGranted = %d", theType, kIOHIDAccessTypeGranted);
         switch (theType) {
@@ -100,7 +110,14 @@ extern "C" bool Elevate(char* process, char** args) {
 
     if (process != NULL) {
         FILE *pipe = NULL;
+        // AuthorizationExecuteWithPrivileges 自 macOS 10.7 起被弃用，
+        // 官方推荐的替代方案是 SMJobBless + launchd，但需要重写整个提权流程
+        // 并打包 helper tool，工程量大且 RustDesk 当前架构依赖同步返回，
+        // 暂用 pragma 局部抑制弃用警告，保留原 API 行为。
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wdeprecated-declarations"
         status = AuthorizationExecuteWithPrivileges(authRef, process, kAuthorizationFlagDefaults, args, &pipe);
+        #pragma clang diagnostic pop
         if (status != errAuthorizationSuccess) {
             printf("Failed to run as root\n");
             AuthorizationFree(authRef, kAuthorizationFlagDefaults);
@@ -137,10 +154,16 @@ extern "C" float BackingScaleFactor(uint32_t display) {
 
 size_t bitDepth(CGDisplayModeRef mode) {
     size_t depth = 0;
-    // Deprecated, same display same bpp? 
+    // Deprecated, same display same bpp?
     // https://stackoverflow.com/questions/8210824/how-to-avoid-cgdisplaymodecopypixelencoding-to-get-bpp
     // https://github.com/libsdl-org/SDL/pull/6628
-	CFStringRef pixelEncoding = CGDisplayModeCopyPixelEncoding(mode);	
+    // CGDisplayModeCopyPixelEncoding 自 macOS 10.11 起弃用，无官方替代 API
+    // （Apple 推荐用 PixelEncoding 的 IORegistry 路径，但实现复杂且行为不一致，
+    // SDL 社区也保留此 API）。暂用 pragma 局部抑制弃用警告。
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+	CFStringRef pixelEncoding = CGDisplayModeCopyPixelEncoding(mode);
+    #pragma clang diagnostic pop	
     // my numerical representation for kIO16BitFloatPixels and kIO32bitFloatPixels	
     // are made up and possibly non-sensical	
     if (kCFCompareEqualTo == CFStringCompare(pixelEncoding, CFSTR(kIO32BitFloatPixels), kCFCompareCaseInsensitive)) {	

@@ -377,8 +377,11 @@ void AddFirewallRuleCmdline(LPWSTR exeName, LPWSTR exeFile, LPCWSTR dir)
 
     hi = ShellExecuteW(NULL, L"open", L"netsh", cmdline, NULL, SW_HIDE);
     // https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecutew
-    if ((int)hi <= 32) {
-        WcaLog(LOGMSG_STANDARD, "Failed to change firewall rule : %d, last error: %d", (int)hi, GetLastError());
+    // HINSTANCE 实为指针类型，64 位目标（ARM64/x64）下 (int)hi 会截断高 32 位，
+    // Microsoft 推荐用 (intptr_t) 比较。错误码本身 <= 32，再降回 int 不丢数据。
+    intptr_t hi_code = reinterpret_cast<intptr_t>(hi);
+    if (hi_code <= 32) {
+        WcaLog(LOGMSG_STANDARD, "Failed to change firewall rule : %d, last error: %d", static_cast<int>(hi_code), GetLastError());
     }
     else {
         WcaLog(LOGMSG_STANDARD, "Firewall rule \"%ls\" (%ls) is added", rulename, dir);
@@ -407,8 +410,10 @@ void RemoveFirewallRuleCmdline(LPWSTR exeName)
 
     hi = ShellExecuteW(NULL, L"open", L"netsh", cmdline, NULL, SW_HIDE);
     // https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecutew
-    if ((int)hi <= 32) {
-        WcaLog(LOGMSG_STANDARD, "Failed to change firewall rule \"%ls\" : %d, last error: %d", rulename, (int)hi, GetLastError());
+    // 同上：64 位目标下用 intptr_t 比较，避免 HINSTANCE→int 指针截断。
+    intptr_t hi_code = reinterpret_cast<intptr_t>(hi);
+    if (hi_code <= 32) {
+        WcaLog(LOGMSG_STANDARD, "Failed to change firewall rule \"%ls\" : %d, last error: %d", rulename, static_cast<int>(hi_code), GetLastError());
     }
     else {
         WcaLog(LOGMSG_STANDARD, "Firewall rule \"%ls\" is removed", rulename);
@@ -737,8 +742,10 @@ UINT __stdcall AddRegSoftwareSASGeneration(__in MSIHANDLE hInstall)
 
     hi = ShellExecuteW(NULL, L"open", L"reg", L" add HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /f /v SoftwareSASGeneration /t REG_DWORD /d 1", NULL, SW_HIDE);
     // https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecutew
-    if ((int)hi <= 32) {
-        WcaLog(LOGMSG_STANDARD, "Failed to add registry name \"%ls\", %d, %d", valueName, (int)hi, GetLastError());
+    // 同上：64 位目标下用 intptr_t 比较，避免 HINSTANCE→int 指针截断。
+    intptr_t hi_code = reinterpret_cast<intptr_t>(hi);
+    if (hi_code <= 32) {
+        WcaLog(LOGMSG_STANDARD, "Failed to add registry name \"%ls\", %d, %d", valueName, static_cast<int>(hi_code), GetLastError());
     }
     else {
         WcaLog(LOGMSG_STANDARD, "Registry name \"%ls\" is added", valueName);
