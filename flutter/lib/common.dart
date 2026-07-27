@@ -3085,7 +3085,7 @@ enum PermissionAuthorizeType {
 
 Future<PermissionAuthorizeType> osxCanRecordAudio() async {
   int res = await kMacOSPermChannel.invokeMethod("canRecordAudio");
-  debugPrint(res);
+  debugPrint('$res');
   if (res > 0) {
     return PermissionAuthorizeType.authorized;
   } else if (res == 0) {

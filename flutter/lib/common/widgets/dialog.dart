@@ -2343,7 +2343,7 @@ void showWindowsSessionsDialog(
   try {
     sessionsList = json.decode(sessions);
   } catch (e) {
-    debugPrint(e);
+    debugPrint('$e');
   }
   List<String> sids = [];
   List<String> names = [];
