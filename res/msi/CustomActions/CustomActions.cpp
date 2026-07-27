@@ -742,13 +742,17 @@ UINT __stdcall AddRegSoftwareSASGeneration(__in MSIHANDLE hInstall)
 
     hi = ShellExecuteW(NULL, L"open", L"reg", L" add HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /f /v SoftwareSASGeneration /t REG_DWORD /d 1", NULL, SW_HIDE);
     // https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecutew
-    // 同上：64 位目标下用 intptr_t 比较，避免 HINSTANCE→int 指针截断。
-    intptr_t hi_code = reinterpret_cast<intptr_t>(hi);
-    if (hi_code <= 32) {
-        WcaLog(LOGMSG_STANDARD, "Failed to add registry name \"%ls\", %d, %d", valueName, static_cast<int>(hi_code), GetLastError());
-    }
-    else {
-        WcaLog(LOGMSG_STANDARD, "Registry name \"%ls\" is added", valueName);
+    // 64 位目标下 HINSTANCE 是 64 位指针，< 32 已是约定值，截断成 int 比较无影响。
+    // 这里用内层块作用域，让 hi_code 不跨越下面的 goto LExit，
+    // 避免 C2362（initialization is skipped by 'goto'）错误。
+    {
+        intptr_t hi_code = reinterpret_cast<intptr_t>(hi);
+        if (hi_code <= 32) {
+            WcaLog(LOGMSG_STANDARD, "Failed to add registry name \"%ls\", %d, %d", valueName, static_cast<int>(hi_code), GetLastError());
+        }
+        else {
+            WcaLog(LOGMSG_STANDARD, "Registry name \"%ls\" is added", valueName);
+        }
     }
 
     // Why RegSetValueExW always return 998?
