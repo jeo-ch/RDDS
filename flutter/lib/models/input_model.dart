@@ -13,9 +13,9 @@ import 'package:flutter_hbb/main.dart';
 import 'package:flutter_hbb/utils/multi_window_manager.dart';
 import 'package:get/get.dart';
 
-import '../../models/model.dart';
-import '../../models/platform_model.dart';
-import '../../models/state_model.dart';
+import 'package:flutter_hbb/models/model.dart';
+import 'package:flutter_hbb/models/platform_model.dart';
+import 'package:flutter_hbb/models/state_model.dart';
 import 'input_modifier_utils.dart';
 import 'relative_mouse_model.dart';
 import 'package:flutter_hbb/common.dart';

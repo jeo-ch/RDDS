@@ -5,7 +5,7 @@ import 'package:flutter_hbb/consts.dart';
 import 'package:flutter_hbb/models/model.dart';
 import 'package:get/get.dart';
 
-import '../../common.dart';
+import 'package:flutter_hbb/common.dart';
 import 'package:flutter_hbb/models/platform_model.dart';
 
 import 'package:texture_rgba_renderer/texture_rgba_renderer.dart'
