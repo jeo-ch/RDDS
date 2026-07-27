@@ -1,7 +1,7 @@
 import 'package:flutter_hbb/common.dart';
 import 'package:get/get.dart';
 
-import '../consts.dart';
+import 'package:flutter_hbb/consts.dart';
 
 // TODO: A lot of dup code.
 

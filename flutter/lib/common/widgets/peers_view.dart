@@ -13,9 +13,9 @@ import 'package:provider/provider.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:window_manager/window_manager.dart';
 
-import '../../common.dart';
-import '../../models/peer_model.dart';
-import '../../models/platform_model.dart';
+import 'package:flutter_hbb/common.dart';
+import 'package:flutter_hbb/models/peer_model.dart';
+import 'package:flutter_hbb/models/platform_model.dart';
 import 'peer_card.dart';
 
 typedef PeerFilter = bool Function(Peer peer);

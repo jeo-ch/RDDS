@@ -10,11 +10,11 @@ import 'package:flutter_hbb/models/platform_model.dart';
 import 'package:get/get.dart';
 import 'package:window_manager/window_manager.dart';
 
-import '../common.dart';
-import '../common/formatter/id_formatter.dart';
-import '../desktop/pages/server_page.dart' as desktop;
-import '../desktop/widgets/tabbar_widget.dart';
-import '../mobile/pages/server_page.dart';
+import 'package:flutter_hbb/common.dart';
+import 'package:flutter_hbb/common/formatter/id_formatter.dart';
+import 'package:flutter_hbb/desktop/pages/server_page.dart' as desktop;
+import 'package:flutter_hbb/desktop/widgets/tabbar_widget.dart';
+import 'package:flutter_hbb/mobile/pages/server_page.dart';
 import 'model.dart';
 
 const kLoginDialogTag = "LOGIN";

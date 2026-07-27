@@ -8,20 +8,20 @@ import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_hbb/models/state_model.dart';
 
-import '../../consts.dart';
-import '../../common/widgets/overlay.dart';
-import '../../common/widgets/remote_input.dart';
-import '../../common.dart';
-import '../../common/widgets/dialog.dart';
-import '../../common/widgets/toolbar.dart';
-import '../../models/model.dart';
-import '../../models/input_model.dart';
-import '../../models/platform_model.dart';
-import '../../common/shared_state.dart';
-import '../../utils/image.dart';
-import '../widgets/remote_toolbar.dart';
-import '../widgets/kb_layout_type_chooser.dart';
-import '../widgets/tabbar_widget.dart';
+import 'package:flutter_hbb/consts.dart';
+import 'package:flutter_hbb/common/widgets/overlay.dart';
+import 'package:flutter_hbb/common/widgets/remote_input.dart';
+import 'package:flutter_hbb/common.dart';
+import 'package:flutter_hbb/common/widgets/dialog.dart';
+import 'package:flutter_hbb/common/widgets/toolbar.dart';
+import 'package:flutter_hbb/models/model.dart';
+import 'package:flutter_hbb/models/input_model.dart';
+import 'package:flutter_hbb/models/platform_model.dart';
+import 'package:flutter_hbb/common/shared_state.dart';
+import 'package:flutter_hbb/utils/image.dart';
+import 'package:flutter_hbb/desktop/widgets/remote_toolbar.dart';
+import 'package:flutter_hbb/desktop/widgets/kb_layout_type_chooser.dart';
+import 'package:flutter_hbb/desktop/widgets/tabbar_widget.dart';
 
 import 'package:flutter_hbb/native/custom_cursor.dart'
     if (dart.library.html) 'package:flutter_hbb/web/custom_cursor.dart';

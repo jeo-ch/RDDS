@@ -11,7 +11,7 @@ import 'package:flutter_hbb/desktop/widgets/tabbar_widget.dart';
 import 'package:flutter_hbb/utils/multi_window_manager.dart';
 import 'package:get/get.dart';
 
-import '../../models/platform_model.dart';
+import 'package:flutter_hbb/models/platform_model.dart';
 
 /// File Transfer for multi tabs
 class FileManagerTabPage extends StatefulWidget {

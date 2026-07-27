@@ -11,7 +11,7 @@ import 'package:flutter_hbb/consts.dart';
 import 'package:flutter_hbb/models/model.dart';
 import 'package:flutter_hbb/models/input_model.dart';
 
-import './gestures.dart';
+import 'package:flutter_hbb/common/widgets/gestures.dart';
 
 class RawKeyFocusScope extends StatelessWidget {
   final FocusNode? focusNode;

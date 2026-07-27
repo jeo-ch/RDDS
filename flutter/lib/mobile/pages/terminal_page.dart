@@ -9,8 +9,8 @@ import 'package:flutter_hbb/models/model.dart';
 import 'package:flutter_hbb/models/terminal_model.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:xterm/xterm.dart';
-import '../../desktop/pages/terminal_connection_manager.dart';
-import '../../consts.dart';
+import 'package:flutter_hbb/desktop/pages/terminal_connection_manager.dart';
+import 'package:flutter_hbb/consts.dart';
 
 class TerminalPage extends StatefulWidget {
   const TerminalPage({

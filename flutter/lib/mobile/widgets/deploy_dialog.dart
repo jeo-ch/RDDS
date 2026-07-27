@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../common.dart';
-import '../../models/platform_model.dart';
+import 'package:flutter_hbb/common.dart';
+import 'package:flutter_hbb/models/platform_model.dart';
 
 const _deployDialogTag = 'android-deploy-device';
 

@@ -3,8 +3,8 @@ import 'dart:core';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../common.dart';
-import './material_mod_popup_menu.dart' as mod_menu;
+import 'package:flutter_hbb/common.dart';
+import 'package:flutter_hbb/desktop/widgets/material_mod_popup_menu.dart' as mod_menu;
 
 // https://stackoverflow.com/questions/68318314/flutter-popup-menu-inside-popup-menu
 class PopupMenuChildrenItem<T> extends mod_menu.PopupMenuEntry<T> {

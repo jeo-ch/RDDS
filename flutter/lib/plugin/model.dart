@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import './common.dart';
-import './manager.dart';
+import 'package:flutter_hbb/plugin/common.dart';
+import 'package:flutter_hbb/plugin/manager.dart';
 
 final Map<String, LocationModel> _locationModels = {};
 final Map<String, OptionModel> _optionModels = {};

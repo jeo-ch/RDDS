@@ -5,8 +5,8 @@ import 'package:flutter_hbb/plugin/model.dart';
 import 'package:flutter_hbb/plugin/common.dart';
 import 'package:get/get.dart';
 
-import '../manager.dart';
-import './desc_ui.dart';
+import 'package:flutter_hbb/plugin/manager.dart';
+import 'package:flutter_hbb/plugin/widgets/desc_ui.dart';
 
 // to-do: use settings from desktop_setting_page.dart
 const double _kCardFixedWidth = 540;

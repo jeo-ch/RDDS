@@ -6,10 +6,10 @@ import 'package:flutter_hbb/models/platform_model.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 
-import '../../consts.dart';
-import '../../desktop/widgets/tabbar_widget.dart';
-import '../../models/chat_model.dart';
-import '../../models/model.dart';
+import 'package:flutter_hbb/consts.dart';
+import 'package:flutter_hbb/desktop/widgets/tabbar_widget.dart';
+import 'package:flutter_hbb/models/chat_model.dart';
+import 'package:flutter_hbb/models/model.dart';
 import 'chat_page.dart';
 
 class DraggableChatWindow extends StatelessWidget {

@@ -10,8 +10,8 @@ import 'package:flutter_hbb/main.dart';
 import 'package:flutter_hbb/utils/relative_mouse_accumulator.dart';
 import 'package:get/get.dart';
 
-import '../common.dart';
-import '../consts.dart';
+import 'package:flutter_hbb/common.dart';
+import 'package:flutter_hbb/consts.dart';
 import 'platform_model.dart';
 
 class RelativeMouseModel {

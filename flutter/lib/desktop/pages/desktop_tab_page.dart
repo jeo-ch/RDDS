@@ -10,7 +10,7 @@ import 'package:get/get.dart';
 import 'package:window_manager/window_manager.dart';
 // import 'package:flutter/services.dart';
 
-import '../../common/shared_state.dart';
+import 'package:flutter_hbb/common/shared_state.dart';
 
 class DesktopTabPage extends StatefulWidget {
   const DesktopTabPage({Key? key}) : super(key: key);

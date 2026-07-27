@@ -2,8 +2,8 @@ import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter_hbb/common.dart';
 import 'package:get/get.dart';
 
-import '../consts.dart';
-import './platform_model.dart';
+import 'package:flutter_hbb/consts.dart';
+import 'package:flutter_hbb/models/platform_model.dart';
 
 enum SvcStatus { notReady, connecting, ready }
 

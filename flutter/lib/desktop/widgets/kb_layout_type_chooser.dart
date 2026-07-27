@@ -4,7 +4,7 @@ import 'package:flutter_hbb/consts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_hbb/models/platform_model.dart';
 
-import '../../common.dart';
+import 'package:flutter_hbb/common.dart';
 
 typedef KBChosenCallback = Future<bool> Function(String);
 

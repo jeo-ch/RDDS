@@ -16,11 +16,11 @@ import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../common.dart';
-import '../../common/widgets/chat_page.dart';
-import '../../models/file_model.dart';
-import '../../models/platform_model.dart';
-import '../../models/server_model.dart';
+import 'package:flutter_hbb/common.dart';
+import 'package:flutter_hbb/common/widgets/chat_page.dart';
+import 'package:flutter_hbb/models/file_model.dart';
+import 'package:flutter_hbb/models/platform_model.dart';
+import 'package:flutter_hbb/models/server_model.dart';
 
 class DesktopServerPage extends StatefulWidget {
   const DesktopServerPage({Key? key}) : super(key: key);

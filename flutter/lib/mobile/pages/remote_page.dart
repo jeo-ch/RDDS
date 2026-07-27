@@ -14,16 +14,16 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 
-import '../../common.dart';
-import '../../common/widgets/overlay.dart';
-import '../../common/widgets/dialog.dart';
-import '../../common/widgets/remote_input.dart';
-import '../../models/input_model.dart';
-import '../../models/model.dart';
-import '../../models/platform_model.dart';
-import '../../utils/image.dart';
-import '../widgets/dialog.dart';
-import '../widgets/custom_scale_widget.dart';
+import 'package:flutter_hbb/common.dart';
+import 'package:flutter_hbb/common/widgets/overlay.dart';
+import 'package:flutter_hbb/common/widgets/dialog.dart';
+import 'package:flutter_hbb/common/widgets/remote_input.dart';
+import 'package:flutter_hbb/models/input_model.dart';
+import 'package:flutter_hbb/models/model.dart';
+import 'package:flutter_hbb/models/platform_model.dart';
+import 'package:flutter_hbb/utils/image.dart';
+import 'package:flutter_hbb/mobile/widgets/dialog.dart';
+import 'package:flutter_hbb/mobile/widgets/custom_scale_widget.dart';
 
 final initText = '1' * 1024;
 

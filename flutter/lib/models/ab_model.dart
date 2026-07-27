@@ -11,8 +11,8 @@ import 'package:flutter_hbb/models/platform_model.dart';
 import 'package:get/get.dart';
 import 'package:bot_toast/bot_toast.dart';
 
-import '../utils/http_service.dart' as http;
-import '../common.dart';
+import 'package:flutter_hbb/utils/http_service.dart' as http;
+import 'package:flutter_hbb/common.dart';
 
 final syncAbOption = 'sync-ab-with-recent-sessions';
 bool shouldSyncAb() {

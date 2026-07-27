@@ -12,11 +12,11 @@ import 'package:flutter_hbb/utils/multi_window_manager.dart';
 import 'package:flutter_hbb/models/model.dart';
 import 'package:get/get.dart';
 
-import '../../models/platform_model.dart';
+import 'package:flutter_hbb/models/platform_model.dart';
 import 'terminal_page.dart';
 import 'terminal_connection_manager.dart';
-import '../widgets/material_mod_popup_menu.dart' as mod_menu;
-import '../widgets/popup_menu.dart';
+import 'package:flutter_hbb/desktop/widgets/material_mod_popup_menu.dart' as mod_menu;
+import 'package:flutter_hbb/desktop/widgets/popup_menu.dart';
 import 'package:bot_toast/bot_toast.dart';
 
 class TerminalTabPage extends StatefulWidget {

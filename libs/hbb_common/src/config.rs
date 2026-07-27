@@ -1387,7 +1387,25 @@ impl Config {
             return constant_time_eq_32(&h1, &stored_h1);
         }
 
-        log::warn!("Permanent password storage is not hashed; verifying as plaintext");
+        // 旧版对称加密格式（"00" 前缀）：先解密再比较。
+        // 这处理从旧版 RustDesk 升级到新版但尚未迁移到哈希存储的密码。
+        let (decrypted, decrypt_ok, _) =
+            decrypt_str_or_original(&storage, PASSWORD_ENC_VERSION);
+        if decrypt_ok {
+            log::info!("Permanent password storage is legacy encrypted (00 prefix), decrypted for verification");
+            // Use constant-time comparison to prevent timing attacks.
+            let max_len = decrypted.len().max(input.len());
+            let mut result: u8 = 0;
+            for i in 0..max_len {
+                let a = decrypted.bytes().nth(i).unwrap_or(0);
+                let b = input.bytes().nth(i).unwrap_or(0);
+                result |= a ^ b;
+            }
+            result |= (decrypted.len() ^ input.len()) as u8;
+            return result == 0;
+        }
+
+        log::warn!("Permanent password storage is not hashed nor encrypted; verifying as plaintext");
         // Use constant-time comparison to prevent timing attacks.
         // Always iterate over the maximum length; shorter input is padded with zeros
         // so the loop count does not leak the password length.

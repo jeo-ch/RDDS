@@ -5,8 +5,8 @@ import 'package:flutter_hbb/common/widgets/setting_widgets.dart';
 import 'package:flutter_hbb/common/widgets/toolbar.dart';
 import 'package:get/get.dart';
 
-import '../../common.dart';
-import '../../models/platform_model.dart';
+import 'package:flutter_hbb/common.dart';
+import 'package:flutter_hbb/models/platform_model.dart';
 
 void _showSuccess() {
   showToast(translate("Successful"));

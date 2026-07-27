@@ -18,8 +18,8 @@ import '../../models/platform_model.dart';
 import '../../models/state_model.dart';
 import 'input_modifier_utils.dart';
 import 'relative_mouse_model.dart';
-import '../common.dart';
-import '../consts.dart';
+import 'package:flutter_hbb/common.dart';
+import 'package:flutter_hbb/consts.dart';
 
 /// Mouse button enum.
 enum MouseButtons { left, right, wheel, back, forward }

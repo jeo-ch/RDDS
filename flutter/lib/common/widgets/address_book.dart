@@ -14,11 +14,11 @@ import 'package:flutter_hbb/models/ab_model.dart';
 import 'package:flutter_hbb/models/platform_model.dart';
 import 'package:flutter_hbb/models/state_model.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-import '../../desktop/widgets/material_mod_popup_menu.dart' as mod_menu;
+import 'package:flutter_hbb/desktop/widgets/material_mod_popup_menu.dart' as mod_menu;
 import 'package:get/get.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 
-import '../../common.dart';
+import 'package:flutter_hbb/common.dart';
 import 'dialog.dart';
 import 'login.dart';
 

@@ -11,14 +11,14 @@ import 'package:settings_ui/settings_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-import '../../common.dart';
-import '../../common/widgets/dialog.dart';
-import '../../common/widgets/login.dart';
-import '../../consts.dart';
-import '../../models/model.dart';
-import '../../models/platform_model.dart';
-import '../widgets/deploy_dialog.dart';
-import '../widgets/dialog.dart';
+import 'package:flutter_hbb/common.dart';
+import 'package:flutter_hbb/common/widgets/dialog.dart';
+import 'package:flutter_hbb/common/widgets/login.dart';
+import 'package:flutter_hbb/consts.dart';
+import 'package:flutter_hbb/models/model.dart';
+import 'package:flutter_hbb/models/platform_model.dart';
+import 'package:flutter_hbb/mobile/widgets/deploy_dialog.dart';
+import 'package:flutter_hbb/mobile/widgets/dialog.dart';
 import 'home_page.dart';
 import 'scan_page.dart';
 

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import '../../models/model.dart';
+import 'package:flutter_hbb/models/model.dart';
 
 /// Manages terminal connections to ensure one FFI instance per peer
 class TerminalConnectionManager {

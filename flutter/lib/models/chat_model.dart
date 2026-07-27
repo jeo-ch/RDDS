@@ -15,10 +15,10 @@ import 'package:uuid/uuid.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../consts.dart';
-import '../common.dart';
-import '../common/widgets/overlay.dart';
-import '../main.dart';
+import 'package:flutter_hbb/consts.dart';
+import 'package:flutter_hbb/common.dart';
+import 'package:flutter_hbb/common/widgets/overlay.dart';
+import 'package:flutter_hbb/main.dart';
 import 'model.dart';
 
 class MessageKey {

@@ -14,12 +14,12 @@ import 'package:url_launcher/url_launcher_string.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:flutter_hbb/models/peer_model.dart';
 
-import '../../common.dart';
-import '../../common/formatter/id_formatter.dart';
-import '../../common/widgets/peer_tab_page.dart';
-import '../../common/widgets/autocomplete.dart';
-import '../../models/platform_model.dart';
-import '../../desktop/widgets/material_mod_popup_menu.dart' as mod_menu;
+import 'package:flutter_hbb/common.dart';
+import 'package:flutter_hbb/common/formatter/id_formatter.dart';
+import 'package:flutter_hbb/common/widgets/peer_tab_page.dart';
+import 'package:flutter_hbb/common/widgets/autocomplete.dart';
+import 'package:flutter_hbb/models/platform_model.dart';
+import 'package:flutter_hbb/desktop/widgets/material_mod_popup_menu.dart' as mod_menu;
 
 class OnlineStatusWidget extends StatefulWidget {
   const OnlineStatusWidget({Key? key, this.onSvcStatusChanged})

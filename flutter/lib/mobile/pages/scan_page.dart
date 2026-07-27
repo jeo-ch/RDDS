@@ -7,9 +7,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:zxing2/qrcode.dart';
 
-import '../../common.dart';
-import '../../models/platform_model.dart';
-import '../widgets/dialog.dart';
+import 'package:flutter_hbb/common.dart';
+import 'package:flutter_hbb/models/platform_model.dart';
+import 'package:flutter_hbb/mobile/widgets/dialog.dart';
 
 class ScanPage extends StatefulWidget {
   @override

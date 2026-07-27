@@ -3,10 +3,10 @@ import 'package:flutter_hbb/mobile/pages/server_page.dart';
 import 'package:flutter_hbb/mobile/pages/settings_page.dart';
 import 'package:flutter_hbb/web/settings_page.dart';
 import 'package:get/get.dart';
-import '../../common.dart';
-import '../../common/widgets/chat_page.dart';
-import '../../models/platform_model.dart';
-import '../../models/state_model.dart';
+import 'package:flutter_hbb/common.dart';
+import 'package:flutter_hbb/common/widgets/chat_page.dart';
+import 'package:flutter_hbb/models/platform_model.dart';
+import 'package:flutter_hbb/models/state_model.dart';
 import 'connection_page.dart';
 
 abstract class PageShape extends Widget {

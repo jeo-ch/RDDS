@@ -20,12 +20,12 @@ import 'package:get/get.dart';
 import 'package:flutter_hbb/web/dummy.dart'
     if (dart.library.html) 'package:flutter_hbb/web/web_unique.dart';
 
-import '../../consts.dart';
-import '../../desktop/widgets/material_mod_popup_menu.dart' as mod_menu;
-import '../../common.dart';
-import '../../models/model.dart';
-import '../../models/platform_model.dart';
-import '../widgets/popup_menu.dart';
+import 'package:flutter_hbb/consts.dart';
+import 'package:flutter_hbb/desktop/widgets/material_mod_popup_menu.dart' as mod_menu;
+import 'package:flutter_hbb/common.dart';
+import 'package:flutter_hbb/models/model.dart';
+import 'package:flutter_hbb/models/platform_model.dart';
+import 'package:flutter_hbb/desktop/widgets/popup_menu.dart';
 
 /// status of location bar
 enum LocationStatus {

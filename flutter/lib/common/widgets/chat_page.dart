@@ -5,7 +5,7 @@ import 'package:flutter_hbb/models/chat_model.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 
-import '../../mobile/pages/home_page.dart';
+import 'package:flutter_hbb/mobile/pages/home_page.dart';
 
 enum ChatPageType {
   mobileMain,

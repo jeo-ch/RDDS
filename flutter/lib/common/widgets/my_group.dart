@@ -7,7 +7,7 @@ import 'package:flutter_hbb/common/widgets/peers_view.dart';
 import 'package:flutter_hbb/models/state_model.dart';
 import 'package:get/get.dart';
 
-import '../../common.dart';
+import 'package:flutter_hbb/common.dart';
 
 class MyGroup extends StatefulWidget {
   final EdgeInsets? menuPadding;

@@ -6,8 +6,8 @@ import 'package:flutter_hbb/models/file_model.dart';
 import 'package:get/get.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 
-import '../../common.dart';
-import '../../common/widgets/dialog.dart';
+import 'package:flutter_hbb/common.dart';
+import 'package:flutter_hbb/common/widgets/dialog.dart';
 
 class FileManagerPage extends StatefulWidget {
   FileManagerPage(

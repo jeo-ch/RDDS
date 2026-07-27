@@ -10,9 +10,9 @@ import 'package:get/get.dart';
 import 'package:flutter_hbb/desktop/widgets/remote_toolbar.dart';
 import 'package:flutter_hbb/models/platform_model.dart';
 
-import '../manager.dart';
-import '../model.dart';
-import '../common.dart';
+import 'package:flutter_hbb/plugin/manager.dart';
+import 'package:flutter_hbb/plugin/model.dart';
+import 'package:flutter_hbb/plugin/common.dart';
 
 // dup to flutter\lib\desktop\pages\desktop_setting_page.dart
 const double _kCheckBoxLeftMargin = 10;

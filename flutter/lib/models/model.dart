@@ -40,9 +40,9 @@ import 'package:window_manager/window_manager.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:vector_math/vector_math.dart' show Vector2;
 
-import '../common.dart';
-import '../utils/image.dart' as img;
-import '../common/widgets/dialog.dart';
+import 'package:flutter_hbb/common.dart';
+import 'package:flutter_hbb/utils/image.dart' as img;
+import 'package:flutter_hbb/common/widgets/dialog.dart';
 import 'input_model.dart';
 import 'platform_model.dart';
 import 'package:flutter_hbb/utils/scale.dart';
