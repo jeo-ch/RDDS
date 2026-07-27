@@ -742,17 +742,16 @@ UINT __stdcall AddRegSoftwareSASGeneration(__in MSIHANDLE hInstall)
 
     hi = ShellExecuteW(NULL, L"open", L"reg", L" add HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /f /v SoftwareSASGeneration /t REG_DWORD /d 1", NULL, SW_HIDE);
     // https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecutew
-    // 64 位目标下 HINSTANCE 是 64 位指针，< 32 已是约定值，截断成 int 比较无影响。
-    // 这里用内层块作用域，让 hi_code 不跨越下面的 goto LExit，
-    // 避免 C2362（initialization is skipped by 'goto'）错误。
-    {
-        intptr_t hi_code = reinterpret_cast<intptr_t>(hi);
-        if (hi_code <= 32) {
-            WcaLog(LOGMSG_STANDARD, "Failed to add registry name \"%ls\", %d, %d", valueName, static_cast<int>(hi_code), GetLastError());
-        }
-        else {
-            WcaLog(LOGMSG_STANDARD, "Registry name \"%ls\" is added", valueName);
-        }
+    // 注意：本函数后续有 goto LExit，不能用 "intptr_t hi_code = ..." 这种带初始化的
+    // 声明——/permissive- 下会启用 /Zc:gotoScope 严格检查，触发 C2362
+    // (initialization is skipped by 'goto')。ShellExecuteW 返回值 <= 32 表示错误，
+    // 用 (int)hi 比较不会丢失有效错误码（与 upstream 官方写法一致），C4311/C4302
+    // 截断警告只是 warning，不阻塞构建。
+    if ((int)hi <= 32) {
+        WcaLog(LOGMSG_STANDARD, "Failed to add registry name \"%ls\", %d, %d", valueName, (int)hi, GetLastError());
+    }
+    else {
+        WcaLog(LOGMSG_STANDARD, "Registry name \"%ls\" is added", valueName);
     }
 
     // Why RegSetValueExW always return 998?
