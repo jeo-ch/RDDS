@@ -30,17 +30,23 @@ extern "C" bool IsCanScreenRecording(bool prompt) {
     return false;
     #else
     // CGPreflightScreenCaptureAccess / CGRequestScreenCaptureAccess 仅 macOS 10.15+ 可用。
-    // 用 @available 显式守卫，让 clang 不再报 -Wunguarded-availability-new。
-    if (@available(macOS 10.15, *)) {
+    // 注意：不能用 @available(macOS 10.15, *) 守卫 ——
+    // 当 MACOSX_DEPLOYMENT_TARGET=10.14 时，@available 会让 clang 生成对
+    // ___isPlatformVersionAtLeast 的引用，该符号仅在 macOS 10.15+ 的 libSystem
+    // 中存在，导致在 10.14 上链接失败（ld: Undefined symbols: ___isPlatformVersionAtLeast）。
+    // 改用 NSAppKitVersionNumber 运行时判断 + pragma 局部抑制 -Wunguarded-availability-new。
+    if (floor(NSAppKitVersionNumber) >= NSAppKitVersionNumber10_15) {
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wunguarded-availability-new"
         bool res = CGPreflightScreenCaptureAccess();
         if (!res && prompt) {
             CGRequestScreenCaptureAccess();
         }
+        #pragma clang diagnostic pop
         return res;
-    } else {
-        // 10.14 及以下：无 Screen Capture API，按已授权处理（行为与原代码一致）
-        return true;
     }
+    // 10.14 及以下：无 Screen Capture API，按已授权处理（行为与原代码一致）
+    return true;
     #endif
 }
 
@@ -51,37 +57,38 @@ extern "C" bool InputMonitoringAuthStatus(bool prompt) {
     #ifdef NO_InputMonitoringAuthStatus
     return true;
     #else
-    // floor(NSAppKitVersionNumber) >= NSAppKitVersionNumber10_15 是运行时判断，
-    // 但 clang 静态分析无法识别它保护了 IOHIDCheckAccess / IOHIDRequestAccess，
-    // 必须用 @available 显式守卫，否则报 -Wunguarded-availability-new。
-    if (@available(macOS 10.15, *)) {
+    // 同 IsCanScreenRecording：不能用 @available 守卫（会引入 ___isPlatformVersionAtLeast
+    // 链接错误），改用 NSAppKitVersionNumber 运行时判断 + pragma 局部抑制
+    // -Wunguarded-availability-new。
+    if (floor(NSAppKitVersionNumber) >= NSAppKitVersionNumber10_15) {
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wunguarded-availability-new"
         IOHIDAccessType theType = IOHIDCheckAccess(kIOHIDRequestTypeListenEvent);
         NSLog(@"IOHIDCheckAccess = %d, kIOHIDAccessTypeGranted = %d", theType, kIOHIDAccessTypeGranted);
         switch (theType) {
             case kIOHIDAccessTypeGranted:
                 return true;
-                break;
             case kIOHIDAccessTypeDenied: {
                 if (prompt) {
                     NSString *urlString = @"x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent";
                     [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:urlString]];
                 }
-                break;
+                return false;
             }
             case kIOHIDAccessTypeUnknown: {
                 if (prompt) {
                     bool result = IOHIDRequestAccess(kIOHIDRequestTypeListenEvent);
                     NSLog(@"IOHIDRequestAccess result = %d", result);
                 }
-                break;
+                return false;
             }
             default:
-                break;
+                return false;
         }
-    } else {
-        return true;
+        #pragma clang diagnostic pop
     }
-    return false;
+    // 10.14 及以下：无 IOHIDCheckAccess API，按已授权处理（行为与原代码一致）
+    return true;
     #endif
 }
 
