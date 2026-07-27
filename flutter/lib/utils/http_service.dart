@@ -97,7 +97,7 @@ class HttpService {
       int statusCode = parsedJson['status_code'];
       return http.Response(body, statusCode, headers: headers);
     } catch (e) {
-      print('Failed to parse response\n$responseJson\nError:\n$e');
+      debugPrint('Failed to parse response\n$responseJson\nError:\n$e');
       throw Exception('Failed to parse response.\n$responseJson');
     }
   }

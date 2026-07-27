@@ -103,7 +103,7 @@ class StateGlobal {
 
   procFullscreenNative(bool procWnd) {
     refreshResizeEdgeSize();
-    print("fullscreen: $fullscreen, resizeEdgeSize: ${_resizeEdgeSize.value}");
+    debugPrint("fullscreen: $fullscreen, resizeEdgeSize: ${_resizeEdgeSize.value}");
     _windowBorderWidth.value = fullscreen.isTrue ? 0 : kWindowBorderWidth;
     if (procWnd) {
       final wc = WindowController.fromWindowId(windowId);

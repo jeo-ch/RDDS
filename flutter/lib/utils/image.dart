@@ -18,14 +18,14 @@ Future<ui.Image?> decodeImageFromPixels(
   if (targetWidth != null) {
     assert(allowUpscaling || targetWidth <= width);
     if (!(allowUpscaling || targetWidth <= width)) {
-      print("not allow upscaling but targetWidth > width");
+      debugPrint("not allow upscaling but targetWidth > width");
       return null;
     }
   }
   if (targetHeight != null) {
     assert(allowUpscaling || targetHeight <= height);
     if (!(allowUpscaling || targetHeight <= height)) {
-      print("not allow upscaling but targetHeight > height");
+      debugPrint("not allow upscaling but targetHeight > height");
       return null;
     }
   }
@@ -55,7 +55,7 @@ Future<ui.Image?> decodeImageFromPixels(
       }
     }
   } catch (e) {
-    print("ImageDescriptor.raw failed: $e");
+    debugPrint("ImageDescriptor.raw failed: $e");
     buffer.dispose();
     return null;
   }
@@ -67,7 +67,7 @@ Future<ui.Image?> decodeImageFromPixels(
       targetHeight: targetHeight,
     );
   } catch (e) {
-    print("instantiateCodec failed: $e");
+    debugPrint("instantiateCodec failed: $e");
     buffer.dispose();
     descriptor.dispose();
     return null;
@@ -77,7 +77,7 @@ Future<ui.Image?> decodeImageFromPixels(
   try {
     frameInfo = await codec.getNextFrame();
   } catch (e) {
-    print("getNextFrame failed: $e");
+    debugPrint("getNextFrame failed: $e");
     codec.dispose();
     buffer.dispose();
     descriptor.dispose();

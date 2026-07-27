@@ -96,7 +96,7 @@ class AbModel {
   }
 
   reset() async {
-    print("reset ab model");
+    debugPrint("reset ab model");
     addressbooks.clear();
     _currentName.value = '';
     _listPullError.value = '';
@@ -928,7 +928,7 @@ abstract class BaseAb {
         p['tags'] = newTags;
       }
     } catch (e) {
-      print("removeNonExistentTags: $e");
+      debugPrint("removeNonExistentTags: $e");
     }
   }
 

@@ -23,7 +23,7 @@ class HarmonyAPI {
     if (_isInitialized) return;
     
     // 实际开发中这里需要调用NAPI绑定的Rust代码
-    print('Initializing HarmonyOS Rust core at: $appDir');
+    debugPrint('Initializing HarmonyOS Rust core at: $appDir');
     
     _isInitialized = true;
   }
@@ -35,33 +35,33 @@ class HarmonyAPI {
 
   Future<bool> connectToPeer(String peerId, String password) async {
     // 实际开发中调用NAPI函数
-    print('Connecting to peer: $peerId');
+    debugPrint('Connecting to peer: $peerId');
     return true;
   }
 
   Future<void> disconnect() async {
     // 实际开发中调用NAPI函数
-    print('Disconnecting');
+    debugPrint('Disconnecting');
   }
 
   Future<void> setServerConfig(String address, int port, bool enableDirect) async {
     // 实际开发中调用NAPI函数
-    print('Setting server config: $address:$port');
+    debugPrint('Setting server config: $address:$port');
   }
 
   Future<void> injectMouseMove(double x, double y) async {
     // 实际开发中调用NAPI函数
-    print('Inject mouse move: ($x, $y)');
+    debugPrint('Inject mouse move: ($x, $y)');
   }
 
   Future<void> injectMouseClick(double x, double y, int button) async {
     // 实际开发中调用NAPI函数
-    print('Inject mouse click: ($x, $y), button $button');
+    debugPrint('Inject mouse click: ($x, $y), button $button');
   }
 
   Future<void> injectKey(String key, bool pressed) async {
     // 实际开发中调用NAPI函数
-    print('Inject key: $key, pressed: $pressed');
+    debugPrint('Inject key: $key, pressed: $pressed');
   }
 
   Future<Uint8List> captureScreenFrame() async {
