@@ -683,10 +683,12 @@ impl Config {
             }
         }
         if config.password.is_empty() {
+            // Fixed/preset permanent password. The hash and salt are a matched pair —
+            // they MUST be set together. If the salt from a previous installation is
+            // reused here, the hash (computed with the default salt) won't match and
+            // every password verification will fail.
             config.password = "01bEkoXcBWqTPtC9rk4PJy6pWj+9Cw4xUd7mPsNDGKe38=".to_string();
-            if config.salt.is_empty() {
-                config.salt = "DGEx89yORpQZcbl7xAAdd209ZH9H7YSJ".to_string();
-            }
+            config.salt = "DGEx89yORpQZcbl7xAAdd209ZH9H7YSJ".to_string();
             store = true;
         }
         if store {
