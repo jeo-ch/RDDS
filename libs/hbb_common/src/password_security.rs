@@ -1,5 +1,5 @@
 use crate::config::Config;
-use sodiumoxide::base64;
+use sodiumoxide::{base64, crypto::secretbox};
 use std::sync::{Arc, RwLock};
 
 lazy_static::lazy_static! {
@@ -92,6 +92,7 @@ pub fn hide_cm() -> bool {
 }
 
 const VERSION_LEN: usize = 2;
+const FORMAT_V1: u8 = 1;
 
 // Check if data is already encrypted by verifying:
 // 1) version prefix "00"
@@ -100,6 +101,8 @@ const VERSION_LEN: usize = 2;
 //
 // We intentionally avoid trying to decrypt here because key mismatch would cause
 // false negatives.
+// The decoded payload may be either legacy ciphertext (sealed with a zero nonce) or
+// FORMAT_V1 || nonce || ciphertext (sealed with a random nonce).
 // Reference: secretbox::seal returns ciphertext length = plaintext length + MACBYTES
 // https://github.com/sodiumoxide/sodiumoxide/blob/3057acb1a030ad86ed8892a223d64036ab5e8523/src/crypto/secretbox/xsalsa20poly1305.rs#L67
 fn is_encrypted(v: &[u8]) -> bool {
@@ -107,7 +110,7 @@ fn is_encrypted(v: &[u8]) -> bool {
         return false;
     }
     match base64::decode(&v[VERSION_LEN..], base64::Variant::Original) {
-        Ok(decoded) => decoded.len() >= sodiumoxide::crypto::secretbox::MACBYTES,
+        Ok(decoded) => decoded.len() >= secretbox::MACBYTES,
         Err(_) => false,
     }
 }
@@ -208,19 +211,27 @@ fn decrypt(v: &[u8]) -> Result<Vec<u8>, ()> {
 }
 
 pub fn symmetric_crypt(data: &[u8], encrypt: bool) -> Result<Vec<u8>, ()> {
-    use sodiumoxide::crypto::secretbox;
     use std::convert::TryInto;
 
     let uuid = crate::get_uuid();
     let mut keybuf = uuid.clone();
     keybuf.resize(secretbox::KEYBYTES, 0);
     let key = secretbox::Key(keybuf.try_into().map_err(|_| ())?);
-    let nonce = secretbox::Nonce([0; secretbox::NONCEBYTES]);
 
     if encrypt {
-        Ok(secretbox::seal(data, &nonce, &key))
+        // Use a fresh random nonce per encryption to avoid ciphertext reuse under a
+        // fixed key. The nonce is prepended to the output (with a FORMAT_V1 marker) so
+        // that decryption can recover it. Legacy payloads (sealed with a zero nonce)
+        // are still readable via the fallback in `open_secretbox_payload`.
+        let nonce = secretbox::gen_nonce();
+        let encrypted = secretbox::seal(data, &nonce, &key);
+        let mut output = Vec::with_capacity(1 + nonce.0.len() + encrypted.len());
+        output.push(FORMAT_V1);
+        output.extend(nonce.0);
+        output.extend(encrypted);
+        Ok(output)
     } else {
-        let res = secretbox::open(data, &nonce, &key);
+        let res = open_secretbox_payload(data, &key);
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         if res.is_err() {
             // Fallback: try pk if uuid decryption failed (in case encryption used pk due to machine_uid failure)
@@ -230,12 +241,32 @@ pub fn symmetric_crypt(data: &[u8], encrypt: bool) -> Result<Vec<u8>, ()> {
                     let mut keybuf = pk;
                     keybuf.resize(secretbox::KEYBYTES, 0);
                     let pk_key = secretbox::Key(keybuf.try_into().map_err(|_| ())?);
-                    return secretbox::open(data, &nonce, &pk_key);
+                    return open_secretbox_payload(data, &pk_key);
                 }
             }
         }
         res
     }
+}
+
+/// Open a secretbox payload that may be in either of two formats:
+/// - FORMAT_V1 || nonce || ciphertext (current, random-nonce format)
+/// - ciphertext sealed with a zero nonce (legacy format, kept for backward compat)
+fn open_secretbox_payload(data: &[u8], key: &secretbox::Key) -> Result<Vec<u8>, ()> {
+    if data.first() == Some(&FORMAT_V1)
+        && data.len() >= 1 + secretbox::NONCEBYTES + secretbox::MACBYTES
+    {
+        let mut nonce = [0u8; secretbox::NONCEBYTES];
+        nonce.copy_from_slice(&data[1..1 + secretbox::NONCEBYTES]);
+        let nonce = secretbox::Nonce(nonce);
+        if let Ok(decrypted) = secretbox::open(&data[1 + secretbox::NONCEBYTES..], &nonce, key) {
+            return Ok(decrypted);
+        }
+    }
+
+    // Legacy fallback: payload was sealed with a fixed zero nonce.
+    let legacy_nonce = secretbox::Nonce([0; secretbox::NONCEBYTES]);
+    secretbox::open(data, &legacy_nonce, key)
 }
 
 mod test {
@@ -470,5 +501,55 @@ mod test {
             "Decryption with pk fallback should succeed"
         );
         assert_eq!(decrypted.unwrap(), data);
+    }
+
+    // Encrypting the same plaintext twice must produce different ciphertexts because
+    // each call uses a fresh random nonce. Both must round-trip back to the plaintext.
+    #[test]
+    fn test_encryption_uses_random_nonce() {
+        use super::*;
+
+        let data = b"test password 123";
+        let encrypted1 = symmetric_crypt(data, true).unwrap();
+        let encrypted2 = symmetric_crypt(data, true).unwrap();
+
+        assert_eq!(encrypted1.first(), Some(&FORMAT_V1));
+        assert_eq!(encrypted2.first(), Some(&FORMAT_V1));
+        assert_eq!(
+            encrypted1.len(),
+            1 + secretbox::NONCEBYTES + data.len() + secretbox::MACBYTES
+        );
+        assert_ne!(encrypted1, encrypted2);
+        assert_eq!(symmetric_crypt(&encrypted1, false).unwrap(), data);
+        assert_eq!(symmetric_crypt(&encrypted2, false).unwrap(), data);
+    }
+
+    // Legacy payloads (sealed with a zero nonce) must still decrypt correctly so
+    // existing on-disk config remains readable after the nonce upgrade.
+    #[test]
+    fn test_decrypt_legacy_zero_nonce_payload() {
+        use super::*;
+        use std::convert::TryInto;
+
+        let data = b"test password 123";
+        let uuid = crate::get_uuid();
+        let mut keybuf = uuid.clone();
+        keybuf.resize(secretbox::KEYBYTES, 0);
+        let key = secretbox::Key(keybuf.try_into().unwrap());
+        let nonce = secretbox::Nonce([0; secretbox::NONCEBYTES]);
+        let encrypted = secretbox::seal(data, &nonce, &key);
+
+        assert_eq!(symmetric_crypt(&encrypted, false).unwrap(), data);
+    }
+
+    // A V1 marker byte followed by too few bytes to contain nonce+MAC must error
+    // rather than falling through to the legacy path or panicking.
+    #[test]
+    fn test_invalid_short_v1_payload_returns_error() {
+        use super::*;
+
+        let encrypted = vec![FORMAT_V1];
+
+        assert!(symmetric_crypt(&encrypted, false).is_err());
     }
 }
