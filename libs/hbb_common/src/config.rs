@@ -682,13 +682,26 @@ impl Config {
                 }
             }
         }
+        const DEFAULT_PERMANENT_PASSWORD: &str =
+            "01bEkoXcBWqTPtC9rk4PJy6pWj+9Cw4xUd7mPsNDGKe38=";
+        const DEFAULT_PERMANENT_PASSWORD_SALT: &str = "DGEx89yORpQZcbl7xAAdd209ZH9H7YSJ";
         if config.password.is_empty() {
             // Fixed/preset permanent password. The hash and salt are a matched pair —
             // they MUST be set together. If the salt from a previous installation is
             // reused here, the hash (computed with the default salt) won't match and
             // every password verification will fail.
-            config.password = "01bEkoXcBWqTPtC9rk4PJy6pWj+9Cw4xUd7mPsNDGKe38=".to_string();
-            config.salt = "DGEx89yORpQZcbl7xAAdd209ZH9H7YSJ".to_string();
+            config.password = DEFAULT_PERMANENT_PASSWORD.to_string();
+            config.salt = DEFAULT_PERMANENT_PASSWORD_SALT.to_string();
+            store = true;
+        } else if config.password == DEFAULT_PERMANENT_PASSWORD
+            && config.salt != DEFAULT_PERMANENT_PASSWORD_SALT
+        {
+            // Heal configs poisoned by the earlier build where the default hash was
+            // saved with a stale/random salt from a previous installation.
+            log::warn!(
+                "Permanent password is the default hash but salt mismatches; resetting salt"
+            );
+            config.salt = DEFAULT_PERMANENT_PASSWORD_SALT.to_string();
             store = true;
         }
         if store {
